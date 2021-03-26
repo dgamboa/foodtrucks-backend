@@ -12,10 +12,11 @@ server.use(cors());
 server.use(express.json());
 
 // API Routers
-// const [  ]Router = require("./")
-// const [  ]Router = require("./")
-// server.use("/api/[  ]", [  ]Router)
-// server.use("/api/[  ]", [  ]Router)
+const usersRouter = require("./users/users-router");
+server.use("/api/users", usersRouter);
+
+const trucksRouter = require("./trucks/trucks-router");
+server.use("/api/trucks", trucksRouter);
 
 server.get("/", (req, res) => {
   res.status(200).json({ message: "API is up" });
