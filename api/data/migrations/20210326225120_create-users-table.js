@@ -5,8 +5,8 @@ exports.up = async function(knex) {
       users.string('username', 200).notNullable()
       users.string('email', 200).notNullable()
       users.string('password', 320).notNullable()
-      users.float('lat')
-      users.float('long')
+      users.float('user_lat')
+      users.float('user_long')
       users.timestamps(false, true)
     })
 };
