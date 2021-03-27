@@ -12,6 +12,9 @@ server.use(cors());
 server.use(express.json());
 
 // API Routers
+const authRouter = require("./auth/auth-router");
+server.use("/api/auth", authRouter);
+
 const usersRouter = require("./users/users-router");
 server.use("/api/users", usersRouter);
 
