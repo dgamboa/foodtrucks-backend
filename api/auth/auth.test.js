@@ -36,16 +36,20 @@ describe("auth-router.js", () => {
     it("[3] responds with the right status on successful registration", async () => {
       const res = await request(server)
         .post("/api/auth/register")
-        .send({ username: "claire", email: "claire@test.com", password: "1234" });
+        .send({
+          username: "claire",
+          email: "claire@test.com",
+          password: "1234",
+        });
       expect(res.status).toBe(201);
     });
     it("[4] responds with the correct user after registering", async () => {
       const res = await request(server)
         .post("/api/auth/register")
         .send({ username: "bob", email: "bob@test.com", password: "1234" });
-      expect(res.body).toMatchObject({
-        username: "bob",
-      });
+      expect(res.body).toHaveProperty("message");
+      expect(res.body).toHaveProperty("registered");
+      expect(res.body).toHaveProperty("token");
       expect(res.body.password).not.toBeDefined();
     });
     it("[5] responds with the right status and message on missing password", async () => {

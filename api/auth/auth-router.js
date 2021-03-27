@@ -1,5 +1,9 @@
 const router = require("express").Router();
-const { checkUsernameAvailable, checkValidBody, buildToken } = require("./auth-middleware");
+const {
+  checkUsernameAvailable,
+  checkValidBody,
+  buildToken,
+} = require("./auth-middleware");
 const bcrypt = require("bcryptjs");
 const db = require("../data/db-config");
 
@@ -18,12 +22,13 @@ router.post(
       const user = await db("users")
         .where("username", credentials.username)
         .first();
-      const userCreated = {
-        id: user.id,
+      const token = buildToken(user);
+      const registered = {
+        id: user.user_id,
         username: user.username,
         email: user.email,
       };
-      res.status(201).json(userCreated);
+      res.status(201).json({ message: `Welcome ${registered.username}!`, token, registered });
     } catch (err) {
       next(err);
     }
@@ -37,7 +42,7 @@ router.post("/login", checkValidBody, async (req, res, next) => {
     const user = await db("users").where("username", username).first();
     if (user && bcrypt.compareSync(password, user.password)) {
       const token = buildToken(user);
-      res.status(200).json({ message: `welcome ${username}`, token });
+      res.status(200).json({ message: `Welcome ${username}!`, token });
     } else {
       res.status(401).json({ message: "invalid credentials" });
     }
