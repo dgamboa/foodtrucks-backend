@@ -20,7 +20,7 @@ const usersRouter = require("./users/users-router");
 server.use("/api/users", restricted, usersRouter);
 
 const trucksRouter = require("./trucks/trucks-router");
-server.use("/api/trucks", trucksRouter);
+server.use("/api/trucks", restricted, trucksRouter);
 
 server.get("/", (req, res) => {
   res.status(200).json({ message: "API is up" });

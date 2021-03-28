@@ -65,7 +65,7 @@ function restricted(req, res, next) {
 
 function restrictedId(req, res, next) {
   const tokenId = req.decodedJWT.subject;
-  const paramsId = parseInt(req.params.id);
+  const paramsId = parseInt(req.params.user_id);
 
   tokenId === paramsId
     ? next()
