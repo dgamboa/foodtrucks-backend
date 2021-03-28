@@ -170,7 +170,25 @@ describe("server.js", () => {
           cuisine: "BBQ",
           user_id: 1,
         });
-      expect(postRes.body.message).toMatch(/trucks require/i);
+      expect(postRes.body.message).toMatch(/truck creation failed/i);
+      expect(postRes.status).toBe(422);
+    });
+    it("[7] responds with right status and message if POST to another user_id", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/trucks")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_name: "Salty",
+          truck_description: "Best BBQ in town!",
+          open_time: "09:00:00",
+          close_time: "20:00:00",
+          cuisine: "BBQ",
+          user_id: 2,
+        });
+      expect(postRes.body.message).toMatch(/truck creation failed/i);
       expect(postRes.status).toBe(422);
     });
   });
