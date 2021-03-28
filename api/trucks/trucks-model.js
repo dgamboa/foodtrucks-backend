@@ -1,12 +1,12 @@
 const db = require("../data/db-config");
 
-module.exports = { create };
+module.exports = { create, getAll };
 
-async function getAll() {}
-
-function getById(truck_id) {
-  
+async function getAll() {
+  return db("trucks").limit(20);
 }
+
+function getById(truck_id) {}
 
 async function create(truck) {
   return db("trucks").insert(truck, [
@@ -16,6 +16,6 @@ async function create(truck) {
     "open_time",
     "close_time",
     "cuisine",
-    "user_id"
+    "user_id",
   ]);
 }

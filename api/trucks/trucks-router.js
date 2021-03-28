@@ -1,11 +1,11 @@
 const router = require("express").Router();
-const { restrictedId } = require("../auth/auth-middleware");
 const { checkValidTruck } = require("../middleware");
 const Truck = require("./trucks-model");
 
-router.get("/", restrictedId, (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
-    return res.json({ message: "GET trucks endpoint is up" });
+    const trucks = await Truck.getAll();
+    return res.json(trucks);
   } catch (err) {
     next(err);
   }

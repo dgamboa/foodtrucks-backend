@@ -66,21 +66,6 @@ describe("server.js", () => {
     });
   });
 
-  describe("[GET] /api/trucks", () => {
-    it("[1] requests without a token are rejected with right status and message", async () => {
-      const res = await request(server).get("/api/trucks");
-      expect(res.body.message).toMatch(/token required/i);
-    });
-    it("[2] requests with invalid token are rejected with right status and message", async () => {
-      const res = await request(server)
-        .get("/api/trucks")
-        .set("Authorization", "qwerty");
-      expect(res.body.message).toMatch(/token invalid/i);
-    });
-    it("[3] returns a list of truck objects", async () => {});
-    it("[4] returns a list of trucks of length < 25", async () => {});
-  });
-
   describe("[POST] /api/trucks", () => {
     it("[1] requests without a token are rejected with right status and message", async () => {
       const res = await request(server).post("/api/trucks").send({
@@ -120,7 +105,9 @@ describe("server.js", () => {
           cuisine: "BBQ",
           user_id: 1,
         });
-      const truckCreated = await db('trucks').where('truck_id', postRes.body.truck.truck_id).first()
+      const truckCreated = await db("trucks")
+        .where("truck_id", postRes.body.truck.truck_id)
+        .first();
       expect(truckCreated).toMatchObject({
         truck_name: "Salty",
         truck_description: "Best BBQ in town!",
@@ -182,6 +169,50 @@ describe("server.js", () => {
         });
       expect(postRes.body.message).toMatch(/trucks require/i);
       expect(postRes.status).toBe(422);
+    });
+  });
+
+  describe("[GET] /api/trucks", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).get("/api/trucks");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .get("/api/trucks")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] returns a list of truck objects", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const res = await request(server)
+        .get("/api/trucks")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body[0]).toHaveProperty("truck_id");
+      expect(res.body[0]).toHaveProperty("truck_name");
+    });
+    it("[4] returns a list of trucks of length <= 20", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+
+      for (let i = 0; i <= 20; i++) {
+        await db("trucks").insert({
+          truck_name: "Salty",
+          truck_description: "Best BBQ in town!",
+          open_time: "09:00:00",
+          close_time: "20:00:00",
+          cuisine: "BBQ",
+          user_id: 1,
+        });
+      }
+
+      const res = await request(server)
+        .get("/api/trucks")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.length).toBeLessThanOrEqual(20);
     });
   });
 });
