@@ -8,6 +8,9 @@ beforeAll(async () => {
   await request(server)
     .post("/api/auth/register")
     .send({ username: "roger", email: "roger@test.com", password: "1234" });
+  await request(server)
+    .post("/api/auth/register")
+    .send({ username: "claire", email: "claire@test.com", password: "1234" });
 });
 
 afterAll(async () => {
@@ -213,6 +216,79 @@ describe("server.js", () => {
         .get("/api/trucks")
         .set("Authorization", loginRes.body.token);
       expect(res.body.length).toBeLessThanOrEqual(20);
+    });
+  });
+
+  describe("[DELETE] /api/trucks/:truck_id", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).delete("/api/trucks/1");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .delete("/api/trucks/1")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] successfully deletes a truck object", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+
+      await request(server)
+        .delete("/api/trucks/1")
+        .set("Authorization", loginRes.body.token);
+      
+      const confirmDeletion = await db('trucks').where('truck_id', 1).first();
+      expect(confirmDeletion).toBeUndefined();
+    });
+    it("[4] responds with correct status and message on successful deletion", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+
+      const res = await request(server)
+        .delete("/api/trucks/2")
+        .set("Authorization", loginRes.body.token);
+      
+      expect(res.body.message).toMatch(/successfully deleted/i);
+      expect(res.status).toBe(200);
+    });
+    it("[5] responds with delete truck on successful deletion", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+
+      const res = await request(server)
+        .delete("/api/trucks/3")
+        .set("Authorization", loginRes.body.token);
+      
+      expect(res.body.truck).toHaveProperty("truck_id");
+      expect(res.body.truck).toHaveProperty("truck_name");
+    });
+    it("[6] fails to delete when a user doesn't own the truck", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "claire", password: "1234" });
+      
+      const res = await request(server)
+        .delete("/api/trucks/4")
+        .set("Authorization", loginRes.body.token); 
+      
+      expect(res.body.message).toMatch(/invalid credentials/i);
+      expect(res.status).toBe(401);
+    });
+    it("[7] responds with correct status and message on attempt to delete a non-existent truck", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      
+      const res = await request(server)
+        .delete("/api/trucks/100")
+        .set("Authorization", loginRes.body.token); 
+      
+      expect(res.body.message).toMatch(/could not find/i);
+      expect(res.status).toBe(404);
     });
   });
 });

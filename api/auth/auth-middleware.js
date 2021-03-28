@@ -7,7 +7,8 @@ module.exports = {
   checkValidBody,
   buildToken,
   restricted,
-  restrictedId,
+  restrictedUserId,
+  restrictedTruckId,
 };
 
 function checkValidBody(req, res, next) {
@@ -63,11 +64,21 @@ function restricted(req, res, next) {
   }
 }
 
-function restrictedId(req, res, next) {
+function restrictedUserId(req, res, next) {
   const tokenId = req.decodedJWT.subject;
   const paramsId = parseInt(req.params.user_id);
 
   tokenId === paramsId
+    ? next()
+    : res.status(401).json({ message: "invalid credentials" });
+}
+
+async function restrictedTruckId(req, res, next) {
+  const tokenId = req.decodedJWT.subject;
+  const truckId = parseInt(req.params.truck_id);
+
+  const truckRecord = await db("trucks").where("truck_id", truckId).first();
+  truckRecord.user_id === tokenId
     ? next()
     : res.status(401).json({ message: "invalid credentials" });
 }
