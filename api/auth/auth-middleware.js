@@ -6,6 +6,8 @@ module.exports = {
   checkUsernameAvailable,
   checkValidBody,
   buildToken,
+  restricted,
+  restrictedId,
 };
 
 function checkValidBody(req, res, next) {
@@ -42,4 +44,30 @@ function buildToken(user) {
     expiresIn: "1d",
   };
   return jwt.sign(payload, JWT_SECRET, config);
+}
+
+function restricted(req, res, next) {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    res.status(401).json({ message: "token required" });
+  } else {
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+      if (err) {
+        res.status(401).json({ message: "token invalid" });
+      } else {
+        req.decodedJWT = decoded;
+        next();
+      }
+    });
+  }
+}
+
+function restrictedId(req, res, next) {
+  const tokenId = req.decodedJWT.subject;
+  const paramsId = parseInt(req.params.id);
+
+  tokenId === paramsId
+    ? next()
+    : res.status(401).json({ message: "invalid credentials" });
 }

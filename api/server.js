@@ -2,6 +2,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const {restricted} = require("./auth/auth-middleware")
 
 // Server Instance
 const server = express();
@@ -16,7 +17,7 @@ const authRouter = require("./auth/auth-router");
 server.use("/api/auth", authRouter);
 
 const usersRouter = require("./users/users-router");
-server.use("/api/users", usersRouter);
+server.use("/api/users", restricted, usersRouter);
 
 const trucksRouter = require("./trucks/trucks-router");
 server.use("/api/trucks", trucksRouter);

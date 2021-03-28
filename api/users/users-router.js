@@ -1,11 +1,13 @@
 const router = require("express").Router();
-// const { validate } = require("./companies-middleware");
+const { restrictedId } = require("../auth/auth-middleware");
 const User = require("./users-model");
 
-router.get("/", (req, res, next) => {
+router.get("/:id", restrictedId, (req, res, next) => {
   try {
-    return res.json({message: "GET users endpoint is up"})
-  } catch(err) { next(err) }
+    return res.json({ message: "GET users/:id endpoint is up" });
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.use((err, req, res) => {
