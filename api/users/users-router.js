@@ -14,7 +14,6 @@ router.get("/:user_id", restrictedUserId, async (req, res, next) => {
   try {
     const user = await User.getById(user_id);
     res.json(user);
-    // res.json(mockUser);
   } catch (err) {
     next(err);
   }
