@@ -12,22 +12,18 @@ function checkValidTruck(req, res, next) {
     user_id,
   } = req.body;
 
-  const tokenId = req.decodedJWT.subject;
-
   if (
     truck_name &&
     truck_description &&
     open_time &&
     close_time &&
     cuisine &&
-    user_id &&
-    user_id === tokenId
+    user_id
   ) {
     next();
   } else {
     res.status(422).json({
-      message:
-        "truck creation failed due to invalid truck object",
+      message: "truck creation failed due to invalid truck object",
     });
   }
 }

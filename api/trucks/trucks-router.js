@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { checkValidTruck, checkTruckExists } = require("../middleware");
-const { restrictedTruckId } = require("../auth/auth-middleware");
+const { restrictedUserId } = require("../auth/auth-middleware");
 const Truck = require("./trucks-model");
 
 router.get("/", async (req, res, next) => {
@@ -12,7 +12,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.post("/", checkValidTruck, async (req, res, next) => {
+router.post("/", checkValidTruck, restrictedUserId, async (req, res, next) => {
   const truckToCreate = req.body;
   try {
     const truckCreated = await Truck.create(truckToCreate);
@@ -24,19 +24,45 @@ router.post("/", checkValidTruck, async (req, res, next) => {
   }
 });
 
-router.delete("/:truck_id", checkTruckExists, restrictedTruckId, async (req, res, next) => {
-  const { truck_id } = req.params;
+router.delete(
+  "/:truck_id",
+  checkTruckExists,
+  restrictedUserId,
+  async (req, res, next) => {
+    const { truck_id } = req.params;
 
-  try {
-    const truckRemoved = await Truck.remove(truck_id);
-    res.json({
-      message: `successfully deleted truck with id ${truck_id}`,
-      truck: truckRemoved,
-    });
-  } catch (err) {
-    next(err);
+    try {
+      const truckRemoved = await Truck.remove(truck_id);
+      res.json({
+        message: `successfully deleted truck with id ${truck_id}`,
+        truck: truckRemoved,
+      });
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
+
+router.put(
+  "/:truck_id",
+  checkValidTruck,
+  restrictedUserId,
+  checkTruckExists,
+  async (req, res, next) => {
+    const { truck_id } = req.params;
+    const truck = req.body;
+
+    try {
+      const truckUpdated = await Truck.edit(truck_id, truck);
+      return res.status(200).json({
+        truck: truckUpdated[0],
+        message: "truck successfully updated!",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 router.use((err, req, res, next) => {
   res.status(500).json({

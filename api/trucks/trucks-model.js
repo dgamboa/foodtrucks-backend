@@ -1,6 +1,6 @@
 const db = require("../data/db-config");
 
-module.exports = { create, getAll, remove };
+module.exports = { create, getAll, remove, edit };
 
 async function getAll() {
   return db("trucks").limit(20);
@@ -28,4 +28,18 @@ async function remove(truck_id) {
     await db("trucks").where("truck_id", truck_id).delete();
   }
   return truckToDelete;
+}
+
+function edit(truck_id, truck) {
+  return db("trucks")
+    .where("truck_id", truck_id)
+    .update(truck, [
+      "truck_id",
+      "truck_name",
+      "truck_description",
+      "open_time",
+      "close_time",
+      "cuisine",
+      "user_id",
+    ]);
 }

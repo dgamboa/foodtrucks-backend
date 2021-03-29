@@ -188,8 +188,8 @@ describe("server.js", () => {
           cuisine: "BBQ",
           user_id: 2,
         });
-      expect(postRes.body.message).toMatch(/truck creation failed/i);
-      expect(postRes.status).toBe(422);
+      expect(postRes.body.message).toMatch(/invalid credentials/i);
+      expect(postRes.status).toBe(401);
     });
   });
 
@@ -237,6 +237,123 @@ describe("server.js", () => {
     });
   });
 
+  describe("[PUT] /api/trucks/:truck_id", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).put("/api/trucks/1");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .put("/api/trucks/1")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] successfully edits a truck object", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+
+      const putRes = await request(server)
+        .put("/api/trucks/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_name: "Brisk It",
+          truck_description: "Better BBQ!",
+          open_time: "09:00:00",
+          close_time: "21:00:00",
+          cuisine: "BBQ",
+          user_id: 1,
+        });
+      const truckCreated = await db("trucks")
+        .where("truck_id", putRes.body.truck.truck_id)
+        .first();
+      expect(truckCreated).toMatchObject({
+        truck_name: "Brisk It",
+        truck_description: "Better BBQ!",
+        cuisine: "BBQ",
+      });
+    });
+    it("[4] responds with correct status and message on successful edit", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const putRes = await request(server)
+        .put("/api/trucks/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_name: "Brisk It",
+          truck_description: "Better BBQ!",
+          open_time: "09:00:00",
+          close_time: "21:00:00",
+          cuisine: "BBQ",
+          user_id: 1,
+        });
+      expect(putRes.body.message).toMatch(/truck .* updated/i);
+      expect(putRes.status).toBe(200);
+    });
+    it("[5] responds with updated truck on successful edit", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const putRes = await request(server)
+        .put("/api/trucks/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_name: "Brisk It",
+          truck_description: "Better BBQ!",
+          open_time: "09:00:00",
+          close_time: "21:00:00",
+          cuisine: "BBQ",
+          user_id: 1,
+        });
+      expect(putRes.body.truck).toMatchObject({
+        truck_name: "Brisk It",
+        truck_description: "Better BBQ!",
+        cuisine: "BBQ",
+      });
+    });
+    it("[6] fails to update when a user doesn't own the truck", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "claire", password: "1234" });
+
+      const putRes = await request(server)
+        .put("/api/trucks/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_name: "Brisk It",
+          truck_description: "Better BBQ!",
+          open_time: "09:00:00",
+          close_time: "21:00:00",
+          cuisine: "BBQ",
+          user_id: 1,
+        });
+
+      expect(putRes.body.message).toMatch(/invalid credentials/i);
+      expect(putRes.status).toBe(401);
+    });
+    it("[7] responds with correct status and message on attempt to edit a non-existent truck", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+
+      const res = await request(server)
+        .put("/api/trucks/100")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_name: "Brisk It",
+          truck_description: "Better BBQ!",
+          open_time: "09:00:00",
+          close_time: "21:00:00",
+          cuisine: "BBQ",
+          user_id: 1,
+        });
+
+      expect(res.body.message).toMatch(/could not find/i);
+      expect(res.status).toBe(404);
+    });
+  });
+
   describe("[DELETE] /api/trucks/:truck_id", () => {
     it("[1] requests without a token are rejected with right status and message", async () => {
       const res = await request(server).delete("/api/trucks/1");
@@ -256,8 +373,8 @@ describe("server.js", () => {
       await request(server)
         .delete("/api/trucks/1")
         .set("Authorization", loginRes.body.token);
-      
-      const confirmDeletion = await db('trucks').where('truck_id', 1).first();
+
+      const confirmDeletion = await db("trucks").where("truck_id", 1).first();
       expect(confirmDeletion).toBeUndefined();
     });
     it("[4] responds with correct status and message on successful deletion", async () => {
@@ -268,7 +385,7 @@ describe("server.js", () => {
       const res = await request(server)
         .delete("/api/trucks/2")
         .set("Authorization", loginRes.body.token);
-      
+
       expect(res.body.message).toMatch(/successfully deleted/i);
       expect(res.status).toBe(200);
     });
@@ -280,7 +397,7 @@ describe("server.js", () => {
       const res = await request(server)
         .delete("/api/trucks/3")
         .set("Authorization", loginRes.body.token);
-      
+
       expect(res.body.truck).toHaveProperty("truck_id");
       expect(res.body.truck).toHaveProperty("truck_name");
     });
@@ -288,11 +405,11 @@ describe("server.js", () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
         .send({ username: "claire", password: "1234" });
-      
+
       const res = await request(server)
         .delete("/api/trucks/4")
-        .set("Authorization", loginRes.body.token); 
-      
+        .set("Authorization", loginRes.body.token);
+
       expect(res.body.message).toMatch(/invalid credentials/i);
       expect(res.status).toBe(401);
     });
@@ -300,11 +417,11 @@ describe("server.js", () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
         .send({ username: "roger", password: "1234" });
-      
+
       const res = await request(server)
         .delete("/api/trucks/100")
-        .set("Authorization", loginRes.body.token); 
-      
+        .set("Authorization", loginRes.body.token);
+
       expect(res.body.message).toMatch(/could not find/i);
       expect(res.status).toBe(404);
     });
