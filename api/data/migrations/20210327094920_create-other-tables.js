@@ -67,7 +67,7 @@ exports.up = async function (knex) {
     })
     .createTable("truck_ratings", (rating) => {
       rating.increments("truck_rating_id");
-      rating.decimal("truck_rating").notNullable();
+      rating.integer("truck_rating").notNullable();
       rating
         .integer("truck_id")
         .unsigned()
@@ -87,7 +87,7 @@ exports.up = async function (knex) {
     })
     .createTable("item_ratings", (rating) => {
       rating.increments("item_rating_id");
-      rating.decimal("item_rating").notNullable();
+      rating.integer("item_rating").notNullable();
       rating
         .integer("user_id")
         .unsigned()
