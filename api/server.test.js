@@ -1,6 +1,7 @@
 const request = require("supertest");
 const server = require("./server");
 const db = require("./data/db-config");
+const bcrypt = require("bcryptjs");
 
 beforeAll(async () => {
   await db.migrate.rollback();
@@ -144,6 +145,78 @@ describe("server.js", () => {
         .set("Authorization", loginRes.body.token)
         .send({
           email: "marie@test.com",
+        });
+      expect(putRes.body.message).toMatch(/invalid credentials/i);
+      expect(putRes.status).toBe(401);
+    });
+  });
+
+  describe("[PUT] /api/users/:user_id/password", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).put("/api/users/1/password");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .put("/api/users/1/password")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] successfully edits an user's password", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "nancy", password: "1234" });
+
+      const res = await request(server)
+        .put("/api/users/3/password")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          old_password: "1234",
+          new_password: "5678",
+        });
+      const userEdited = await db("users")
+        .where("user_id", 3)
+        .first();
+      expect(bcrypt.compareSync("5678", userEdited.password)).toBeTruthy();
+    });
+    it("[4] responds with correct status and message on successful edit", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "nancy", password: "5678" });
+      const putRes = await request(server)
+        .put("/api/users/3/password")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          old_password: "5678",
+          new_password: "9101",
+        });
+      expect(putRes.body.message).toMatch(/password .* updated/i);
+      expect(putRes.status).toBe(200);
+    });
+    it("[5] fails to update if old password is wrong", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "nancy", password: "9101" });
+      const putRes = await request(server)
+        .put("/api/users/3/password")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          old_password: "0000",
+          new_password: "1111",
+        });
+        expect(putRes.body.message).toMatch(/invalid credentials/i);
+        expect(putRes.status).toBe(401);
+    });
+    it("[6] fails to update when the logged in user doesn't match the user to update", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const putRes = await request(server)
+        .put("/api/users/3/password")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          old_password: "1234",
+          new_password: "0000",
         });
       expect(putRes.body.message).toMatch(/invalid credentials/i);
       expect(putRes.status).toBe(401);

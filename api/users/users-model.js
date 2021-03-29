@@ -3,6 +3,8 @@ const db = require("../data/db-config");
 module.exports = {
   getById,
   edit,
+  getUserWithPassword,
+  editPassword,
 };
 
 async function getById(user_id) {
@@ -22,6 +24,16 @@ async function getById(user_id) {
   };
 
   return returnUser;
+}
+
+function getUserWithPassword(user_id) {
+  return db("users").where("user_id", user_id).first();
+}
+
+function editPassword(user_id, hash_password) {
+  return db("users")
+    .where("user_id", user_id)
+    .update({ password: hash_password }, ["user_id"]);
 }
 
 function edit(user_id, user) {
