@@ -4,9 +4,6 @@ const { restrictedUserId } = require("../auth/auth-middleware");
 const { checkValidUserEdit } = require("../middleware");
 const User = require("./users-model");
 
-// Mocks
-const { mockUser } = require("../data/mocks");
-
 // Endpoints
 router.get("/:user_id", restrictedUserId, async (req, res, next) => {
   const { user_id } = req.params;
