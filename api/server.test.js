@@ -11,6 +11,9 @@ beforeAll(async () => {
   await request(server)
     .post("/api/auth/register")
     .send({ username: "claire", email: "claire@test.com", password: "1234" });
+  await request(server)
+    .post("/api/auth/register")
+    .send({ username: "nancy", email: "nancy@test.com", password: "1234" });
 });
 
 afterAll(async () => {
@@ -66,6 +69,84 @@ describe("server.js", () => {
         .set("Authorization", loginRes.body.token);
       expect(usersRes.body.message).toMatch(/invalid credentials/i);
       expect(usersRes.status).toBe(401);
+    });
+  });
+
+  describe("[PUT] /api/users/:user_id", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).put("/api/users/1");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .put("/api/users/1")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] successfully edits an user object", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "nancy", password: "1234" });
+
+      const putRes = await request(server)
+        .put("/api/users/3")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          email: "jane@test.com",
+          user_lat: 43.4752,
+          user_long: -110.7669,
+        });
+      const userEdited = await db("users")
+        .where("user_id", putRes.body.user.user_id)
+        .first();
+      expect(userEdited).toMatchObject({
+        email: "jane@test.com",
+        user_lat: 43.4752,
+        user_long: -110.7669,
+      });
+    });
+    it("[4] responds with correct status and message on successful edit", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "nancy", password: "1234" });
+      const putRes = await request(server)
+        .put("/api/users/3")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          email: "sarah@test.com",
+          user_lat: 43.4755,
+        });
+      expect(putRes.body.message).toMatch(/user .* updated/i);
+      expect(putRes.status).toBe(200);
+    });
+    it("[5] responds with updated user on successful edit", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "nancy", password: "1234" });
+      const putRes = await request(server)
+        .put("/api/users/3")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          email: "sabrina@test.com",
+          user_lat: 43.4743,
+        });
+      expect(putRes.body.user).toMatchObject({
+        email: "sabrina@test.com",
+        user_lat: 43.4743,
+      });
+    });
+    it("[6] fails to update when the logged in user doesn't match the user to update", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const putRes = await request(server)
+        .put("/api/users/3")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          email: "marie@test.com",
+        });
+      expect(putRes.body.message).toMatch(/invalid credentials/i);
+      expect(putRes.status).toBe(401);
     });
   });
 

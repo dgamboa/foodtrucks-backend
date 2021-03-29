@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const {
   checkUsernameAvailable,
-  checkValidBody,
+  checkValidUser,
   buildToken,
 } = require("./auth-middleware");
 const bcrypt = require("bcryptjs");
@@ -9,7 +9,7 @@ const db = require("../data/db-config");
 
 router.post(
   "/register",
-  checkValidBody,
+  checkValidUser,
   checkUsernameAvailable,
   async (req, res, next) => {
     const credentials = req.body;
@@ -35,7 +35,7 @@ router.post(
   }
 );
 
-router.post("/login", checkValidBody, async (req, res, next) => {
+router.post("/login", checkValidUser, async (req, res, next) => {
   const { username, password } = req.body;
 
   try {

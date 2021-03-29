@@ -1,6 +1,24 @@
 const db = require("../data/db-config");
 
-module.exports = { checkValidTruck, checkTruckExists };
+module.exports = { checkValidTruck, checkTruckExists, checkValidUserEdit };
+
+function checkValidUserEdit(req, res, next) {
+  const { email, user_lat, user_long } = req.body;
+
+  if (email || user_lat || user_long) {
+    req.userEdits = {
+      email,
+      user_lat,
+      user_long,
+    };
+    next();
+  } else {
+    res.status(422).json({
+      message:
+        "user edits require a change to email, user_lat and/or user_long",
+    });
+  }
+}
 
 function checkValidTruck(req, res, next) {
   const {

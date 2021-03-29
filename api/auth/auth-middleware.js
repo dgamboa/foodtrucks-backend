@@ -4,13 +4,13 @@ const { JWT_SECRET } = require("../secrets");
 
 module.exports = {
   checkUsernameAvailable,
-  checkValidBody,
+  checkValidUser,
   buildToken,
   restricted,
   restrictedUserId,
 };
 
-function checkValidBody(req, res, next) {
+function checkValidUser(req, res, next) {
   const { username, email, password } = req.body;
   const action = req.url;
 
