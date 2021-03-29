@@ -3,10 +3,15 @@ const { checkValidTruck, checkTruckExists } = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Truck = require("./trucks-model");
 
+// Mocks
+const { mockTrucks } = require("../data/mocks");
+
+// Endpoints
 router.get("/", async (req, res, next) => {
   try {
-    const trucks = await Truck.getAll();
-    res.json(trucks);
+    // const trucks = await Truck.getAll();
+    // res.json(trucks);
+    res.json(mockTrucks);
   } catch (err) {
     next(err);
   }
