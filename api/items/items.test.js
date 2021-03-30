@@ -309,3 +309,48 @@ describe("items", () => {
     });
   });
 });
+
+describe("photos", () => {
+  describe("[GET] /items/:item_id/photos", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).get("/api/items/1/photos");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .get("/api/items/1/photos")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] returns a list of photo objects", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .get("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body[0]).toHaveProperty("photo_id");
+      expect(res.body[0]).toHaveProperty("photo_url");
+      expect(res.body[0]).toHaveProperty("item_id");
+      expect(res.body[0]).toHaveProperty("user_id");
+    });
+    it("[4] returns a list of trucks of length <= 5", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .get("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.length).toBeLessThanOrEqual(5);
+    });
+    it("[5] returns photo objects with urls", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .get("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body[0].photo_url).toMatch(/https/i);
+    });
+  });
+})

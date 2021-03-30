@@ -2,7 +2,9 @@ const router = require("express").Router();
 const { checkValidItem, checkItemExists } = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Item = require("./items-model");
+const Photo = require("./photos-model");
 
+// Items
 router.post("/", checkValidItem, restrictedUserId, async (req, res, next) => {
   const itemToCreate = req.body;
 
@@ -55,6 +57,19 @@ router.delete(
     }
   }
 );
+
+// Photos
+router.get("/", async (req, res, next) => {
+  const { item_id } = req.params;
+  console.log(req)
+
+  try {
+    const photos = await Photo.getAll(item_id);
+    res.json(photos);
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.use((err, req, res, next) => {
   res.status(500).json({
