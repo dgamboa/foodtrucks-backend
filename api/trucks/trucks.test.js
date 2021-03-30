@@ -198,6 +198,15 @@ describe("trucks", () => {
       expect(res.body[0].number_of_ratings).toBe(0);
       expect(res.body[0].truck_avg_rating).toBe(null);
     });
+    it("[6] returns the number of trucks requested through params", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .get("/api/trucks?limit=2")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.length).toBe(2);
+    });
   });
 
   describe("[GET] /api/trucks/:truck_id", () => {

@@ -5,8 +5,10 @@ const Truck = require("./trucks-model");
 
 // Endpoints
 router.get("/", async (req, res, next) => {
+  const numberOfTrucks = req.query.limit;
+
   try {
-    const trucks = await Truck.getAll();
+    const trucks = await Truck.getAll(numberOfTrucks);
     res.json(trucks);
   } catch (err) {
     next(err);
