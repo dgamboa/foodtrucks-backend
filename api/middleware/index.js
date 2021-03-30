@@ -1,6 +1,12 @@
 const db = require("../data/db-config");
 
-module.exports = { checkValidTruck, checkTruckExists, checkValidUserEdit };
+module.exports = {
+  checkValidTruck,
+  checkTruckExists,
+  checkValidUserEdit,
+  checkValidItem,
+  decimalize
+};
 
 function checkValidUserEdit(req, res, next) {
   const { email, user_lat, user_long } = req.body;
@@ -54,4 +60,20 @@ async function checkTruckExists(req, res, next) {
     : res
         .status(404)
         .json({ message: `could not find truck with id ${truck_id}` });
+}
+
+function checkValidItem(req, res, next) {
+  const { item_name, item_description, item_price, truck_id } = req.body;
+
+  if (item_name && item_description && item_price && truck_id) {
+    next();
+  } else {
+    res.status(422).json({
+      message: "item creation failed due to invalid item object",
+    });
+  }
+}
+
+function decimalize(stringNum) {
+  return stringNum ? parseFloat(parseFloat(stringNum).toFixed(2)) : null;
 }
