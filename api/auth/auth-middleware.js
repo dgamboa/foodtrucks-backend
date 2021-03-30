@@ -68,7 +68,7 @@ async function restrictedUserId(req, res, next) {
   let user_id = parseInt(req.params.user_id) || req.body.user_id;
 
   if (!user_id) {
-    const truck_id = parseInt(req.params.truck_id);
+    const truck_id = parseInt(req.params.truck_id) || req.body.truck_id;
     const truckRecord = await db("trucks").where("truck_id", truck_id).first();
     user_id = truckRecord.user_id;
   }
