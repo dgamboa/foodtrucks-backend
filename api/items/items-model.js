@@ -31,4 +31,18 @@ async function edit(item_id, item) {
   };
 }
 
-module.exports = { create, edit };
+async function remove(item_id) {
+  const itemToDelete = await getItemById(item_id);
+  await db("items").where("item_id", item_id).del();
+  return itemToDelete
+}
+
+async function getItemById(item_id) {
+  const item = await db("items").where("item_id", item_id).first();
+  return {
+    ...item,
+    item_price: decimalize(item.item_price),
+  };
+}
+
+module.exports = { create, edit, remove };

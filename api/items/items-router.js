@@ -37,6 +37,25 @@ router.put(
   }
 );
 
+router.delete(
+  "/:item_id",
+  checkItemExists,
+  restrictedUserId,
+  async (req, res, next) => {
+    const { item_id } = req.params;
+
+    try {
+      const itemRemoved = await Item.remove(item_id);
+      res.json({
+        message: `successfully deleted item with id ${item_id}`,
+        item: itemRemoved,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.use((err, req, res, next) => {
   res.status(500).json({
     error: err.message,
