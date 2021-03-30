@@ -22,6 +22,9 @@ server.use("/api/users", restricted, usersRouter);
 const trucksRouter = require("./trucks/trucks-router");
 server.use("/api/trucks", restricted, trucksRouter);
 
+const itemsRouter = require("./items/items-router");
+server.use("/api/items", restricted, itemsRouter);
+
 server.get("/", (req, res) => {
   res.status(200).json({ message: "API is up" });
 });
