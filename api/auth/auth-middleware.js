@@ -69,7 +69,7 @@ async function restrictedUserId(req, res, next) {
   let truck_id = parseInt(req.params.truck_id) || req.body.truck_id;
   let item_id = parseInt(req.params.item_id);
 
-  if (!truck_id) {
+  if (!truck_id && item_id) {
     const truckRecord = await db("trucks as t")
       .leftJoin("items as i", "t.truck_id", "i.truck_id")
       .where("i.item_id", item_id)
