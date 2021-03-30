@@ -25,6 +25,9 @@ server.use("/api/trucks", restricted, trucksRouter);
 const itemsRouter = require("./items/items-router");
 server.use("/api/items", restricted, itemsRouter);
 
+const photosRouter = require("./photos/photos-router");
+server.use("/api/items/:item_id/photos", restricted, photosRouter);
+
 server.get("/", (req, res) => {
   res.status(200).json({ message: "API is up" });
 });
