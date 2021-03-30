@@ -5,16 +5,11 @@ const db = require("../data/db-config");
 beforeAll(async () => {
   await db.migrate.rollback();
   await db.migrate.latest();
-  await request(server)
-    .post("/api/auth/register")
-    .send({ username: "roger", email: "roger@test.com", password: "1234" });
-  await request(server)
-    .post("/api/auth/register")
-    .send({ username: "claire", email: "claire@test.com", password: "1234" });
-  await request(server)
-    .post("/api/auth/register")
-    .send({ username: "nancy", email: "nancy@test.com", password: "1234" });
 });
+
+beforeEach(async () => {
+  await db.seed.run()
+})
 
 afterAll(async () => {
   await db.destroy();
@@ -52,7 +47,7 @@ describe("trucks", () => {
     it("[3] creates a new truck object", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const postRes = await request(server)
         .post("/api/trucks")
         .set("Authorization", loginRes.body.token)
@@ -76,7 +71,7 @@ describe("trucks", () => {
     it("[4] responds with right status and message on successful truck creation", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const postRes = await request(server)
         .post("/api/trucks")
         .set("Authorization", loginRes.body.token)
@@ -94,7 +89,7 @@ describe("trucks", () => {
     it("[5] responds with truck created", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const postRes = await request(server)
         .post("/api/trucks")
         .set("Authorization", loginRes.body.token)
@@ -115,7 +110,7 @@ describe("trucks", () => {
     it("[6] responds with right status and message if missing truck name", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const postRes = await request(server)
         .post("/api/trucks")
         .set("Authorization", loginRes.body.token)
@@ -132,7 +127,7 @@ describe("trucks", () => {
     it("[7] responds with right status and message if POST to another user_id", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const postRes = await request(server)
         .post("/api/trucks")
         .set("Authorization", loginRes.body.token)
@@ -163,7 +158,7 @@ describe("trucks", () => {
     it("[3] returns a list of truck objects", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const res = await request(server)
         .get("/api/trucks")
         .set("Authorization", loginRes.body.token);
@@ -175,7 +170,7 @@ describe("trucks", () => {
     it("[4] returns a list of trucks of length <= 20", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
 
       for (let i = 0; i <= 20; i++) {
         await db("trucks").insert({
@@ -196,7 +191,7 @@ describe("trucks", () => {
     it("[5] returns trucks with rating information of right type", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const res = await request(server)
         .get("/api/trucks")
         .set("Authorization", loginRes.body.token);
@@ -219,7 +214,7 @@ describe("trucks", () => {
     it("[3] returns a truck object", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const res = await request(server)
         .get("/api/trucks/1")
         .set("Authorization", loginRes.body.token);
@@ -239,21 +234,21 @@ describe("trucks", () => {
     it("[4] truck object includes items array", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const res = await request(server)
         .get("/api/trucks/1")
         .set("Authorization", loginRes.body.token);
-      expect(res.body.items).toHaveLength(0);
+      expect(res.body.items).toHaveLength(2);
     });
     it("[5] truck object has rating information of right type", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const res = await request(server)
         .get("/api/trucks/1")
         .set("Authorization", loginRes.body.token);
-      expect(res.body.number_of_ratings).toBe(0);
-      expect(res.body.truck_avg_rating).toBe(null);
+      expect(res.body.number_of_ratings).toBe(3);
+      expect(res.body.truck_avg_rating).toBe(4.33);
     });
   });
 
@@ -271,7 +266,7 @@ describe("trucks", () => {
     it("[3] successfully edits a truck object", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
 
       const putRes = await request(server)
         .put("/api/trucks/1")
@@ -296,7 +291,7 @@ describe("trucks", () => {
     it("[4] responds with correct status and message on successful edit", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const putRes = await request(server)
         .put("/api/trucks/1")
         .set("Authorization", loginRes.body.token)
@@ -314,7 +309,7 @@ describe("trucks", () => {
     it("[5] responds with updated truck on successful edit", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
       const putRes = await request(server)
         .put("/api/trucks/1")
         .set("Authorization", loginRes.body.token)
@@ -335,7 +330,7 @@ describe("trucks", () => {
     it("[6] fails to update when a user doesn't own the truck", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "claire", password: "1234" });
+        .send({ username: "clara", password: "1234" });
 
       const putRes = await request(server)
         .put("/api/trucks/1")
@@ -355,7 +350,7 @@ describe("trucks", () => {
     it("[7] responds with correct status and message on attempt to edit a non-existent truck", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
 
       const res = await request(server)
         .put("/api/trucks/100")
@@ -388,7 +383,7 @@ describe("trucks", () => {
     it("[3] successfully deletes a truck object", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
 
       await request(server)
         .delete("/api/trucks/1")
@@ -400,7 +395,7 @@ describe("trucks", () => {
     it("[4] responds with correct status and message on successful deletion", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
 
       const res = await request(server)
         .delete("/api/trucks/2")
@@ -412,10 +407,10 @@ describe("trucks", () => {
     it("[5] responds with delete truck on successful deletion", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
 
       const res = await request(server)
-        .delete("/api/trucks/3")
+        .delete("/api/trucks/1")
         .set("Authorization", loginRes.body.token);
 
       expect(res.body.truck).toHaveProperty("truck_id");
@@ -424,10 +419,10 @@ describe("trucks", () => {
     it("[6] fails to delete when a user doesn't own the truck", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "claire", password: "1234" });
+        .send({ username: "clara", password: "1234" });
 
       const res = await request(server)
-        .delete("/api/trucks/4")
+        .delete("/api/trucks/1")
         .set("Authorization", loginRes.body.token);
 
       expect(res.body.message).toMatch(/invalid credentials/i);
@@ -436,7 +431,7 @@ describe("trucks", () => {
     it("[7] responds with correct status and message on attempt to delete a non-existent truck", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "roger", password: "1234" });
+        .send({ username: "jeff", password: "1234" });
 
       const res = await request(server)
         .delete("/api/trucks/100")

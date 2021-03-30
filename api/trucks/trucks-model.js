@@ -1,4 +1,5 @@
 const db = require("../data/db-config");
+const { decimalize } = require("../middleware");
 
 module.exports = { create, getAll, remove, edit, getById };
 
@@ -113,8 +114,4 @@ function getTruckItems(truck_id) {
   return db("items")
     .column("item_id", "item_name", "item_description", "item_price")
     .where("truck_id", truck_id);
-}
-
-function decimalize(rating) {
-  return rating ? parseFloat(parseFloat(rating).toFixed(2)) : null;
 }

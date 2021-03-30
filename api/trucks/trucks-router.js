@@ -15,10 +15,9 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:truck_id", async (req, res, next) => {
   const { truck_id } = req.params;
-  
+
   try {
     const truck = await Truck.getById(truck_id);
-    console.log(truck)
     res.json(truck);
   } catch (err) {
     next(err);
