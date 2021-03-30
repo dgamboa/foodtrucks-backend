@@ -6,6 +6,8 @@ module.exports = {
   checkValidUserEdit,
   checkValidItem,
   checkItemExists,
+  checkValidPhoto,
+  checkPhotoExists,
   decimalize,
 };
 
@@ -83,6 +85,28 @@ async function checkItemExists(req, res, next) {
     : res
         .status(404)
         .json({ message: `could not find item with id ${item_id}` });
+}
+
+function checkValidPhoto(req, res, next) {
+  const { photo_url, item_id, user_id } = req.body;
+
+  if (photo_url && item_id && user_id) {
+    next();
+  } else {
+    res.status(422).json({
+      message: "photo upload failed due to invalid photo object",
+    });
+  }
+}
+
+async function checkPhotoExists(req, res, next) {
+  const { photo_id } = req.params;
+  const photo = await db("item_photos").where("photo_id", photo_id).first();
+  photo
+    ? next()
+    : res
+        .status(404)
+        .json({ message: `could not find photo with id ${photo_id}` });
 }
 
 function decimalize(stringNum) {

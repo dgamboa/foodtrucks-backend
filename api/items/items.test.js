@@ -311,7 +311,7 @@ describe("items", () => {
 });
 
 describe("photos", () => {
-  describe("[GET] /items/:item_id/photos", () => {
+  describe("[GET] /api/items/:item_id/photos", () => {
     it("[1] requests without a token are rejected with right status and message", async () => {
       const res = await request(server).get("/api/items/1/photos");
       expect(res.body.message).toMatch(/token required/i);
@@ -353,4 +353,181 @@ describe("photos", () => {
       expect(res.body[0].photo_url).toMatch(/https/i);
     });
   });
-})
+
+  describe("[POST] /api/items/:item_id/photos", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).post("/api/items/1/photos").send({
+        photo_url: "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+        item_id: 1,
+        user_id: 1,
+      });
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .post("/api/items/1/photos")
+        .set("Authorization", "qwerty")
+        .send({
+          photo_url:
+            "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+          item_id: 1,
+          user_id: 1,
+        });
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] creates a new photo object", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          photo_url:
+            "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+          item_id: 1,
+          user_id: 1,
+        });
+      const photoCreated = await db("item_photos")
+        .where("photo_id", postRes.body.photo.photo_id)
+        .first();
+      expect(photoCreated).toMatchObject({
+        photo_url: "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+        item_id: 1,
+        user_id: 1,
+      });
+    });
+    it("[4] responds with right status and message on successful photo creation", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          photo_url:
+            "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+          item_id: 1,
+          user_id: 1,
+        });
+      expect(postRes.body.message).toMatch(/photo .* uploaded/i);
+      expect(postRes.status).toBe(201);
+    });
+    it("[5] responds with photo created", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          photo_url:
+            "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+          item_id: 1,
+          user_id: 1,
+        });
+      expect(postRes.body.photo).toMatchObject({
+        photo_url: "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+        item_id: 1,
+        user_id: 1,
+      });
+    });
+    it("[6] responds with right status and message if missing photo url", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          item_id: 1,
+          user_id: 1,
+        });
+      expect(postRes.body.message).toMatch(/photo upload failed/i);
+      expect(postRes.status).toBe(422);
+    });
+    it("[7] responds with right status and message if POST to another user's item_id", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "clara", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          photo_url:
+            "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+          item_id: 1,
+          user_id: 1,
+        });
+      expect(postRes.body.message).toMatch(/invalid credentials/i);
+      expect(postRes.status).toBe(401);
+    });
+  });
+
+  describe("[DELETE] /api/items/:item_id/photos/:photo_id", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).delete("/api/items/1/photos/1");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .delete("/api/items/1/photos/1")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] successfully deletes a photo object", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      await request(server)
+        .delete("/api/items/1/photos/1")
+        .set("Authorization", loginRes.body.token);
+      const confirmDeletion = await db("item_photos")
+        .where("photo_id", 1)
+        .first();
+      expect(confirmDeletion).toBeUndefined();
+    });
+    it("[4] responds with correct status and message on successful deletion", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .delete("/api/items/1/photos/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.message).toMatch(/successfully deleted/i);
+      expect(res.status).toBe(200);
+    });
+    it("[5] responds with deleted photo on successful deletion", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .delete("/api/items/1/photos/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.photo).toHaveProperty("photo_id");
+      expect(res.body.photo).toHaveProperty("photo_url");
+      expect(res.body.photo).toHaveProperty("item_id");
+      expect(res.body.photo).toHaveProperty("user_id");
+    });
+    it("[6] fails to delete when a user doesn't own the photo", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "clara", password: "1234" });
+      const res = await request(server)
+        .delete("/api/items/1/photos/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.message).toMatch(/invalid credentials/i);
+      expect(res.status).toBe(401);
+    });
+    it("[7] responds with correct status and message on attempt to delete a non-existent photo", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .delete("/api/items/1/photos/100")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.message).toMatch(/could not find/i);
+      expect(res.status).toBe(404);
+    });
+  });
+});

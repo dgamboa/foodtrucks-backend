@@ -2,7 +2,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const {restricted} = require("./auth/auth-middleware")
+const { restricted } = require("./auth/auth-middleware");
 
 // Server Instance
 const server = express();

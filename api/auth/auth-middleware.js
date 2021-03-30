@@ -66,10 +66,18 @@ function restricted(req, res, next) {
 async function restrictedUserId(req, res, next) {
   const tokenId = req.decodedJWT.subject;
   let user_id = parseInt(req.params.user_id) || req.body.user_id;
-  let truck_id = parseInt(req.params.truck_id) || req.body.truck_id;
-  let item_id = parseInt(req.params.item_id);
+  const truck_id = parseInt(req.params.truck_id) || req.body.truck_id;
+  const item_id = parseInt(req.params.item_id);
+  const photo_id = parseInt(req.params.photo_id);
 
-  if (!truck_id && item_id) {
+  if (photo_id) {
+    const photoRecord = await db("item_photos")
+      .where("photo_id", photo_id)
+      .first();
+    user_id = photoRecord.user_id;
+  }
+
+  if (!truck_id && item_id && !user_id) {
     const truckRecord = await db("trucks as t")
       .leftJoin("items as i", "t.truck_id", "i.truck_id")
       .where("i.item_id", item_id)
