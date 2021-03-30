@@ -133,4 +133,113 @@ describe("trucks", () => {
       expect(postRes.status).toBe(401);
     });
   });
+
+  describe("[PUT] /api/items/:item_id", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).put("/api/items/1");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .put("/api/items/1")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] successfully edits an item object", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+
+      const putRes = await request(server)
+        .put("/api/items/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          item_name: "Brisket",
+          item_description: "Best brisket in town",
+          item_price: 12,
+          truck_id: 1,
+        });
+      const itemCreated = await db("items")
+        .where("item_id", putRes.body.item.item_id)
+        .first();
+      expect(itemCreated).toMatchObject({
+        item_name: "Brisket",
+        item_description: "Best brisket in town",
+        item_price: "12.00",
+        truck_id: 1,
+      });
+    });
+    it("[4] responds with correct status and message on successful edit", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const putRes = await request(server)
+        .put("/api/items/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          item_name: "Beef Tenderloin",
+          item_description: "Best tenderloin in town",
+          item_price: 15,
+          truck_id: 1,
+        });
+      expect(putRes.body.message).toMatch(/item .* updated/i);
+      expect(putRes.status).toBe(200);
+    });
+    it("[5] responds with updated item on successful edit", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const putRes = await request(server)
+        .put("/api/items/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          item_name: "Steak",
+          item_description: "Best steak in town",
+          item_price: 12,
+          truck_id: 1,
+        });
+      expect(putRes.body.item).toMatchObject({
+        item_name: "Steak",
+        item_description: "Best steak in town",
+        item_price: 12,
+        truck_id: 1,
+      });
+    });
+    it("[6] fails to update when a user doesn't own the truck for the item", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "clara", password: "1234" });
+
+      const putRes = await request(server)
+        .put("/api/items/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          item_name: "Filet",
+          item_description: "Best filet in town",
+          item_price: 20,
+          truck_id: 1,
+        });
+
+      expect(putRes.body.message).toMatch(/invalid credentials/i);
+      expect(putRes.status).toBe(401);
+    });
+    it("[7] responds with correct status and message on attempt to edit a non-existent item", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+
+      const res = await request(server)
+        .put("/api/items/100")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          item_name: "Brisket",
+          item_description: "Best brisket in town",
+          item_price: 12,
+          truck_id: 1,
+        });
+
+      expect(res.body.message).toMatch(/could not find/i);
+      expect(res.status).toBe(404);
+    });
+  });
 });

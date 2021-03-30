@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { checkValidItem } = require("../middleware");
+const { checkValidItem, checkItemExists } = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Item = require("./items-model");
 
@@ -15,6 +15,27 @@ router.post("/", checkValidItem, restrictedUserId, async (req, res, next) => {
     next(err);
   }
 });
+
+router.put(
+  "/:item_id",
+  checkValidItem,
+  restrictedUserId,
+  checkItemExists,
+  async (req, res, next) => {
+    const { item_id } = req.params;
+    const item = req.body;
+
+    try {
+      const itemUpdated = await Item.edit(item_id, item);
+      return res.status(200).json({
+        item: itemUpdated,
+        message: "item successfully updated!",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 router.use((err, req, res, next) => {
   res.status(500).json({

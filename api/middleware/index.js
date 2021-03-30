@@ -5,7 +5,8 @@ module.exports = {
   checkTruckExists,
   checkValidUserEdit,
   checkValidItem,
-  decimalize
+  checkItemExists,
+  decimalize,
 };
 
 function checkValidUserEdit(req, res, next) {
@@ -72,6 +73,16 @@ function checkValidItem(req, res, next) {
       message: "item creation failed due to invalid item object",
     });
   }
+}
+
+async function checkItemExists(req, res, next) {
+  const { item_id } = req.params;
+  const item = await db("items").where("item_id", item_id).first();
+  item
+    ? next()
+    : res
+        .status(404)
+        .json({ message: `could not find item with id ${item_id}` });
 }
 
 function decimalize(stringNum) {
