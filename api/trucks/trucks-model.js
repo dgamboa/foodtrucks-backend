@@ -1,6 +1,6 @@
 const db = require("../data/db-config");
 
-module.exports = { create, getAll, remove, edit };
+module.exports = { create, getAll, remove, edit, getById };
 
 async function getAll() {
   const rawTrucks = await getTrucksWithRatings();
@@ -8,14 +8,29 @@ async function getAll() {
     return {
       ...truck,
       number_of_ratings: parseInt(truck.number_of_ratings),
-      truck_avg_rating: parseFloat(parseFloat(truck.truck_avg_rating).toFixed(2)),
+      truck_avg_rating: decimalize(truck.truck_avg_rating),
     };
   });
   return trucks;
 }
 
-function getById(truck_id) {
-  return db("trucks").where("truck_id", truck_id).first();
+async function getById(truck_id) {
+  const truck = await getOneTruckWithRatings(truck_id);
+  const rawItems = await getTruckItems(truck_id);
+
+  const items = rawItems.map((item) => {
+    return {
+      ...item,
+      item_price: decimalize(item.item_price),
+    };
+  });
+
+  return {
+    ...truck,
+    number_of_ratings: parseInt(truck.number_of_ratings),
+    truck_avg_rating: decimalize(truck.truck_avg_rating),
+    items: items,
+  };
 }
 
 function create(truck) {
@@ -71,4 +86,35 @@ function getTrucksWithRatings() {
     .avg({ truck_avg_rating: "r.truck_rating" })
     .groupBy("t.truck_id")
     .limit(20);
+}
+
+function getOneTruckWithRatings(truck_id) {
+  return db("trucks as t")
+    .leftJoin("truck_ratings as r", "t.truck_id", "r.truck_id")
+    .column(
+      "t.truck_id",
+      "t.truck_name",
+      "t.truck_description",
+      "t.image_url",
+      "t.truck_lat",
+      "t.truck_long",
+      "t.open_time",
+      "t.close_time",
+      "t.cuisine"
+    )
+    .count({ number_of_ratings: "r.truck_rating_id" })
+    .avg({ truck_avg_rating: "r.truck_rating" })
+    .groupBy("t.truck_id")
+    .where("t.truck_id", truck_id)
+    .first();
+}
+
+function getTruckItems(truck_id) {
+  return db("items")
+    .column("item_id", "item_name", "item_description", "item_price")
+    .where("truck_id", truck_id);
+}
+
+function decimalize(rating) {
+  return rating ? parseFloat(parseFloat(rating).toFixed(2)) : null;
 }

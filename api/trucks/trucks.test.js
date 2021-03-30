@@ -193,7 +193,7 @@ describe("trucks", () => {
         .set("Authorization", loginRes.body.token);
       expect(res.body.length).toBeLessThanOrEqual(20);
     });
-    it("[5] returns a list of truck objects", async () => {
+    it("[5] returns trucks with rating information of right type", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
         .send({ username: "roger", password: "1234" });
@@ -202,6 +202,58 @@ describe("trucks", () => {
         .set("Authorization", loginRes.body.token);
       expect(res.body[0].number_of_ratings).toBe(0);
       expect(res.body[0].truck_avg_rating).toBe(null);
+    });
+  });
+
+  describe("[GET] /api/trucks/:truck_id", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).get("/api/trucks/1");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .get("/api/trucks/1")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] returns a truck object", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const res = await request(server)
+        .get("/api/trucks/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body).toHaveProperty("truck_id");
+      expect(res.body).toHaveProperty("truck_name");
+      expect(res.body).toHaveProperty("truck_description");
+      expect(res.body).toHaveProperty("image_url");
+      expect(res.body).toHaveProperty("truck_lat");
+      expect(res.body).toHaveProperty("truck_long");
+      expect(res.body).toHaveProperty("open_time");
+      expect(res.body).toHaveProperty("close_time");
+      expect(res.body).toHaveProperty("cuisine");
+      expect(res.body).toHaveProperty("number_of_ratings");
+      expect(res.body).toHaveProperty("truck_avg_rating");
+      expect(res.body).toHaveProperty("items");
+    });
+    it("[4] truck object includes items array", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const res = await request(server)
+        .get("/api/trucks/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.items).toHaveLength(0);
+    });
+    it("[5] truck object has rating information of right type", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const res = await request(server)
+        .get("/api/trucks/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.number_of_ratings).toBe(0);
+      expect(res.body.truck_avg_rating).toBe(null);
     });
   });
 
