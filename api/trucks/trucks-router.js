@@ -9,9 +9,9 @@ const { mockTrucks } = require("../data/mocks");
 // Endpoints
 router.get("/", async (req, res, next) => {
   try {
-    // const trucks = await Truck.getAll();
-    // res.json(trucks);
-    res.json(mockTrucks);
+    const trucks = await Truck.getAll();
+    res.json(trucks);
+    // res.json(mockTrucks);
   } catch (err) {
     next(err);
   }

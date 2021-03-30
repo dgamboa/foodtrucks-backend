@@ -169,6 +169,8 @@ describe("trucks", () => {
         .set("Authorization", loginRes.body.token);
       expect(res.body[0]).toHaveProperty("truck_id");
       expect(res.body[0]).toHaveProperty("truck_name");
+      expect(res.body[0]).toHaveProperty("number_of_ratings");
+      expect(res.body[0]).toHaveProperty("truck_avg_rating");
     });
     it("[4] returns a list of trucks of length <= 20", async () => {
       const loginRes = await request(server)
@@ -190,6 +192,16 @@ describe("trucks", () => {
         .get("/api/trucks")
         .set("Authorization", loginRes.body.token);
       expect(res.body.length).toBeLessThanOrEqual(20);
+    });
+    it("[5] returns a list of truck objects", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "roger", password: "1234" });
+      const res = await request(server)
+        .get("/api/trucks")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body[0].number_of_ratings).toBe(0);
+      expect(res.body[0].truck_avg_rating).toBe(null);
     });
   });
 
