@@ -3,7 +3,7 @@ const {
   checkValidItem,
   checkItemExists,
   checkValidPhoto,
-  checkPhotoExists
+  checkPhotoExists,
 } = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Item = require("./items-model");
@@ -66,9 +66,10 @@ router.delete(
 // Photos
 router.get("/:item_id/photos", async (req, res, next) => {
   const { item_id } = req.params;
+  const numberOfPhotos = req.query.limit;
 
   try {
-    const photos = await Photo.getAll(item_id);
+    const photos = await Photo.getAll(item_id, numberOfPhotos);
     res.json(photos);
   } catch (err) {
     next(err);
@@ -84,12 +85,10 @@ router.post(
 
     try {
       const photoUploaded = await Photo.upload(photoToUpload);
-      res
-        .status(201)
-        .json({
-          photo: photoUploaded[0],
-          message: "photo successfully uploaded!",
-        });
+      res.status(201).json({
+        photo: photoUploaded[0],
+        message: "photo successfully uploaded!",
+      });
     } catch (err) {
       next(err);
     }

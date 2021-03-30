@@ -352,6 +352,15 @@ describe("photos", () => {
         .set("Authorization", loginRes.body.token);
       expect(res.body[0].photo_url).toMatch(/https/i);
     });
+    it("[5] returns photo objects with urls", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .get("/api/items/1/photos?limit=2")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.length).toBe(2);
+    });
   });
 
   describe("[POST] /api/items/:item_id/photos", () => {

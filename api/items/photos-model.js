@@ -1,7 +1,7 @@
 const db = require("../data/db-config");
 
-function getAll(item_id) {
-  return db("item_photos").where("item_id", item_id).limit(5);
+function getAll(item_id, numberOfPhotos = 5) {
+  return db("item_photos").where("item_id", item_id).limit(numberOfPhotos);
 }
 
 function upload(photo) {
