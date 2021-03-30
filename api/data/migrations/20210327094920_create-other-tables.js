@@ -64,6 +64,14 @@ exports.up = async function (knex) {
         .inTable("items")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
+      photos
+        .integer("user_id")
+        .unsigned()
+        .notNullable()
+        .references("user_id")
+        .inTable("users")
+        .onDelete("CASCADE")
+        .onUpdate("CASCADE");
     })
     .createTable("truck_ratings", (rating) => {
       rating.increments("truck_rating_id");
@@ -104,7 +112,7 @@ exports.up = async function (knex) {
         .inTable("items")
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
-    })
+    });
 };
 
 exports.down = async function (knex) {
