@@ -132,6 +132,27 @@ router.put(
   }
 );
 
+// Truck Favorites
+router.post(
+  "/:truck_id/favorites",
+  checkValidFavorite,
+  checkTruckIdsMatch,
+  restrictedUserId,
+  checkFavoriteExists,
+  async (req, res, next) => {
+    const truckFavToCreate = req.body;
+    try {
+      const truckFavCreated = await Favorite.create(truckFavToCreate);
+      return res.status(201).json({
+        rating: truckFavCreated[0],
+        message: "truck successfully added to favorites!",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.use((err, req, res, next) => {
   res.status(500).json({
     error: err.message,
