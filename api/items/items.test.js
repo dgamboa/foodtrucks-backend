@@ -471,6 +471,24 @@ describe("photos", () => {
       expect(postRes.body.message).toMatch(/invalid credentials/i);
       expect(postRes.status).toBe(401);
     });
+    it("[8] item_id in body matches item_id in params", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/1/photos")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          photo_url:
+            "https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f",
+          item_id: 2,
+          user_id: 1,
+        });
+      expect(postRes.body.message).toMatch(
+        /item id in body must match params in path/i
+      );
+      expect(postRes.status).toBe(422);
+    });
   });
 
   describe("[DELETE] /api/items/:item_id/photos/:photo_id", () => {
@@ -658,7 +676,7 @@ describe("item ratings", () => {
           item_rating: 4,
         });
       expect(postRes.body.message).toMatch(
-        /item rating body must match params in path/i
+        /item id in body must match params in path/i
       );
       expect(postRes.status).toBe(422);
     });

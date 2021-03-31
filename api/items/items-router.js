@@ -5,7 +5,7 @@ const {
   checkValidPhoto,
   checkPhotoExists,
   checkValidItemRating,
-  checkItemRatingIdsMatch,
+  checkItemIdsMatch,
   checkItemRatingExists,
 } = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
@@ -83,6 +83,7 @@ router.get("/:item_id/photos", async (req, res, next) => {
 router.post(
   "/:item_id/photos",
   checkValidPhoto,
+  checkItemIdsMatch,
   restrictedUserId,
   async (req, res, next) => {
     const photoToUpload = req.body;
@@ -122,7 +123,7 @@ router.delete(
 router.post(
   "/:item_id/item-ratings",
   checkValidItemRating,
-  checkItemRatingIdsMatch,
+  checkItemIdsMatch,
   restrictedUserId,
   checkItemRatingExists,
   async (req, res, next) => {
@@ -142,7 +143,7 @@ router.post(
 router.put(
   "/:item_id/item-ratings/:item_rating_id",
   checkValidItemRating,
-  checkItemRatingIdsMatch,
+  checkItemIdsMatch,
   restrictedUserId,
   checkItemRatingExists,
   async (req, res, next) => {
