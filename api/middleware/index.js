@@ -8,6 +8,9 @@ module.exports = {
   checkItemExists,
   checkValidPhoto,
   checkPhotoExists,
+  checkValidTruckRating,
+  checkTruckRatingIdsMatch,
+  checkTruckRatingExists,
   decimalize,
 };
 
@@ -107,6 +110,54 @@ async function checkPhotoExists(req, res, next) {
     : res
         .status(404)
         .json({ message: `could not find photo with id ${photo_id}` });
+}
+
+function checkValidTruckRating(req, res, next) {
+  const { user_id, truck_id, truck_rating } = req.body;
+
+  if (user_id && truck_id && truck_rating) {
+    next();
+  } else {
+    res.status(422).json({
+      message:
+        "truck rating creation failed due to invalid truck rating object",
+    });
+  }
+}
+
+function checkTruckRatingIdsMatch(req, res, next) {
+  const truck_idBody = req.body.truck_id;
+  const truck_idParams = parseInt(req.params.truck_id);
+
+  if (truck_idBody === truck_idParams) {
+    next();
+  } else {
+    res.status(422).json({
+      message: "truck rating body must match params in endpoint",
+    });
+  }
+}
+
+async function checkTruckRatingExists(req, res, next) {
+  const { truck_id, user_id, truck_rating_id } = req.body;
+  const truck_rating = await db("truck_ratings")
+    .where("truck_id", truck_id)
+    .andWhere("user_id", user_id)
+    .first();
+
+  if (req.method === "POST") {
+    truck_rating
+      ? res.status(422).json({ message: "truck rating already exists" })
+      : next();
+  } else if (req.method === "PUT") {
+    truck_rating
+      ? next()
+      : res
+          .status(404)
+          .json({
+            message: `could not find truck_rating with id ${truck_rating_id}`,
+          });
+  }
 }
 
 function decimalize(stringNum) {

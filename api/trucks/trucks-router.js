@@ -1,9 +1,16 @@
 const router = require("express").Router();
-const { checkValidTruck, checkTruckExists } = require("../middleware");
+const {
+  checkValidTruck,
+  checkTruckExists,
+  checkValidTruckRating,
+  checkTruckRatingIdsMatch,
+  checkTruckRatingExists,
+} = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Truck = require("./trucks-model");
+const TruckRating = require("./truck-ratings-model");
 
-// Endpoints
+// Truck Endpoints
 router.get("/", async (req, res, next) => {
   const numberOfTrucks = req.query.limit;
   const truckName = req.query.name?.toLowerCase();
@@ -72,6 +79,52 @@ router.put(
       return res.status(200).json({
         truck: truckUpdated[0],
         message: "truck successfully updated!",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Truck Ratings Endpoints
+router.post(
+  "/:truck_id/truck-ratings",
+  checkValidTruckRating,
+  checkTruckRatingIdsMatch,
+  restrictedUserId,
+  checkTruckRatingExists,
+  async (req, res, next) => {
+    const truckRatingToCreate = req.body;
+    try {
+      const truckRatingCreated = await TruckRating.create(truckRatingToCreate);
+      return res.status(201).json({
+        rating: truckRatingCreated[0],
+        message: "truck rating successfully created!",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.put(
+  "/:truck_id/truck-ratings/:truck_rating_id",
+  checkValidTruckRating,
+  checkTruckRatingIdsMatch,
+  restrictedUserId,
+  checkTruckRatingExists,
+  async (req, res, next) => {
+    const { truck_rating_id } = req.params;
+    const truckRating = req.body;
+
+    try {
+      const truckRatingUpdated = await TruckRating.edit(
+        truck_rating_id,
+        truckRating
+      );
+      return res.status(200).json({
+        rating: truckRatingUpdated[0],
+        message: "truck rating successfully updated!",
       });
     } catch (err) {
       next(err);
