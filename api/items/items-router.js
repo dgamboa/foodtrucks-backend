@@ -114,6 +114,27 @@ router.delete(
   }
 );
 
+// Item Ratings
+router.post(
+  "/:item_id/item-ratings",
+  checkValidItemRating,
+  checkItemRatingIdsMatch,
+  restrictedUserId,
+  checkItemRatingExists,
+  async (req, res, next) => {
+    const itemRatingToCreate = req.body;
+    try {
+      const itemRatingCreated = await ItemRating.create(itemRatingToCreate);
+      return res.status(201).json({
+        rating: itemRatingCreated[0],
+        message: "item rating successfully created!",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.use((err, req, res, next) => {
   res.status(500).json({
     error: err.message,
