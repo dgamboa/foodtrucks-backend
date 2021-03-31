@@ -803,7 +803,7 @@ describe("truck favorite", () => {
           truck_id: 4,
           user_id: 1,
         });
-      expect(postRes.body.rating).toMatchObject({
+      expect(postRes.body.favorite).toMatchObject({
         truck_id: 4,
         user_id: 1,
       });
@@ -818,7 +818,7 @@ describe("truck favorite", () => {
         .send({
           user_id: 1,
         });
-      expect(postRes.body.message).toMatch(/truck not added to favorites/i);
+      expect(postRes.body.message).toMatch(/truck not added to favorites due to missing property/i);
       expect(postRes.status).toBe(422);
     });
     it("[7] responds with right status and message if POST to another user_id", async () => {

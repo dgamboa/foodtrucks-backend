@@ -14,6 +14,8 @@ module.exports = {
   checkValidItemRating,
   checkItemIdsMatch,
   checkItemRatingExists,
+  checkValidFavorite,
+  checkFavoriteExists,
   decimalize,
 };
 
@@ -210,6 +212,42 @@ async function checkItemRatingExists(req, res, next) {
       ? next()
       : res.status(404).json({
           message: `could not find item rating with id ${item_rating_id}`,
+        });
+  }
+}
+
+function checkValidFavorite(req, res, next) {
+  const { user_id, truck_id } = req.body;
+
+  if (user_id && truck_id) {
+    next();
+  } else {
+    res.status(422).json({
+      message: "truck not added to favorites due to missing property",
+    });
+  }
+}
+
+async function checkFavoriteExists(req, res, next) {
+  const { truck_id, user_id } = req.body;
+  const { favorite_id } = req.params;
+
+  if (req.method === "POST") {
+    const favorite = await db("favorites")
+      .where("truck_id", truck_id)
+      .andWhere("user_id", user_id)
+      .first();
+    favorite
+      ? res.status(422).json({ message: "truck favorite already exists" })
+      : next();
+  } else if (req.method === "PUT") {
+    const favorite = await db("favorites")
+      .where("favorite_id", favorite_id)
+      .first();
+    favorite
+      ? next()
+      : res.status(404).json({
+          message: `could not find favorite with id ${favorite_id}`,
         });
   }
 }

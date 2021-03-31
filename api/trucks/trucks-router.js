@@ -5,6 +5,8 @@ const {
   checkValidTruckRating,
   checkTruckIdsMatch,
   checkTruckRatingExists,
+  checkValidFavorite,
+  checkFavoriteExists,
 } = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Truck = require("./trucks-model");
@@ -145,7 +147,7 @@ router.post(
     try {
       const truckFavCreated = await Favorite.create(truckFavToCreate);
       return res.status(201).json({
-        rating: truckFavCreated[0],
+        favorite: truckFavCreated[0],
         message: "truck successfully added to favorites!",
       });
     } catch (err) {
