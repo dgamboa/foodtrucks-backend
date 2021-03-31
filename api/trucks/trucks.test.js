@@ -581,7 +581,7 @@ describe("truck ratings", () => {
           truck_rating: 4,
         });
       expect(postRes.body.message).toMatch(
-        /truck rating body must match params in endpoint/i
+        /truck rating body must match params in path/i
       );
       expect(postRes.status).toBe(422);
     });

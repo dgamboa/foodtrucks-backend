@@ -133,7 +133,7 @@ function checkTruckRatingIdsMatch(req, res, next) {
     next();
   } else {
     res.status(422).json({
-      message: "truck rating body must match params in endpoint",
+      message: "truck rating body must match params in path",
     });
   }
 }
