@@ -9,10 +9,10 @@ module.exports = {
   checkValidPhoto,
   checkPhotoExists,
   checkValidTruckRating,
-  checkTruckRatingIdsMatch,
+  checkTruckIdsMatch,
   checkTruckRatingExists,
   checkValidItemRating,
-  checkItemRatingIdsMatch,
+  checkItemIdsMatch,
   checkItemRatingExists,
   decimalize,
 };
@@ -128,7 +128,7 @@ function checkValidTruckRating(req, res, next) {
   }
 }
 
-function checkTruckRatingIdsMatch(req, res, next) {
+function checkTruckIdsMatch(req, res, next) {
   const truck_idBody = req.body.truck_id;
   const truck_idParams = parseInt(req.params.truck_id);
 
@@ -136,7 +136,7 @@ function checkTruckRatingIdsMatch(req, res, next) {
     next();
   } else {
     res.status(422).json({
-      message: "truck rating body must match params in path",
+      message: "truck id in body must match params in path",
     });
   }
 }
@@ -177,7 +177,7 @@ function checkValidItemRating(req, res, next) {
   }
 }
 
-function checkItemRatingIdsMatch(req, res, next) {
+function checkItemIdsMatch(req, res, next) {
   const item_idBody = req.body.item_id;
   const item_idParams = parseInt(req.params.item_id);
 
@@ -185,7 +185,7 @@ function checkItemRatingIdsMatch(req, res, next) {
     next();
   } else {
     res.status(422).json({
-      message: "item rating body must match params in path",
+      message: "item id in body must match params in path",
     });
   }
 }

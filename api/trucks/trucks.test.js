@@ -581,7 +581,7 @@ describe("truck ratings", () => {
           truck_rating: 4,
         });
       expect(postRes.body.message).toMatch(
-        /truck rating body must match params in path/i
+        /truck id in body must match params in path/i
       );
       expect(postRes.status).toBe(422);
     });
@@ -719,6 +719,158 @@ describe("truck ratings", () => {
         });
       expect(res.body.message).toMatch(/invalid credentials/i);
       expect(res.status).toBe(401);
+    });
+    it("[9] truck_id in body matches truck_id in params", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .put("/api/trucks/1/truck-ratings/1")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_id: 2,
+          user_id: 1,
+          truck_rating: 1,
+        });
+      expect(postRes.body.message).toMatch(
+        /truck id in body must match params in path/i
+      );
+      expect(postRes.status).toBe(422);
+    });
+  });
+});
+
+describe("truck favorite", () => {
+  describe("[POST] /api/trucks/:truck_id/favorites", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).post("/api/trucks/4/favorites").send({
+        truck_id: 4,
+        user_id: 1,
+      });
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", "qwerty")
+        .send({
+          truck_id: 4,
+          user_id: 1,
+        });
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] creates a new truck favorite record", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_id: 4,
+          user_id: 1,
+        });
+      const truckFavCreated = await db("favorites")
+        .where("favorite_id", postRes.body.favorite.favorite_id)
+        .first();
+      expect(truckFavCreated).toMatchObject({
+        truck_id: 4,
+        user_id: 1,
+      });
+    });
+    it("[4] responds with right status and message on successful favorite of a truck", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_id: 4,
+          user_id: 1,
+        });
+      expect(postRes.body.message).toMatch(/truck .* added to favorites/i);
+      expect(postRes.status).toBe(201);
+    });
+    it("[5] responds with truck favorite record", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_id: 4,
+          user_id: 1,
+        });
+      expect(postRes.body.rating).toMatchObject({
+        truck_id: 4,
+        user_id: 1,
+      });
+    });
+    it("[6] responds with right status and message if missing truck id", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 1,
+        });
+      expect(postRes.body.message).toMatch(/truck not added to favorites/i);
+      expect(postRes.status).toBe(422);
+    });
+    it("[7] responds with right status and message if POST to another user_id", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_id: 4,
+          user_id: 2,
+        });
+      expect(postRes.body.message).toMatch(/invalid credentials/i);
+      expect(postRes.status).toBe(401);
+    });
+    it("[8] truck_id in body matches truck_id in params", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_id: 3,
+          user_id: 1,
+        });
+      expect(postRes.body.message).toMatch(
+        /truck id in body must match params in path/i
+      );
+      expect(postRes.status).toBe(422);
+    });
+    it("[9] cannot POST if truck favorite record already exists for that user_id and truck_id", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_id: 4,
+          user_id: 1,
+        });
+      const postRes = await request(server)
+        .post("/api/trucks/4/favorites")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          truck_id: 4,
+          user_id: 1,
+        });
+      expect(postRes.body.message).toMatch(/truck favorite already exists/i);
+      expect(postRes.status).toBe(422);
     });
   });
 });

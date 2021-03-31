@@ -3,7 +3,7 @@ const {
   checkValidTruck,
   checkTruckExists,
   checkValidTruckRating,
-  checkTruckRatingIdsMatch,
+  checkTruckIdsMatch,
   checkTruckRatingExists,
 } = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
@@ -90,7 +90,7 @@ router.put(
 router.post(
   "/:truck_id/truck-ratings",
   checkValidTruckRating,
-  checkTruckRatingIdsMatch,
+  checkTruckIdsMatch,
   restrictedUserId,
   checkTruckRatingExists,
   async (req, res, next) => {
@@ -110,7 +110,7 @@ router.post(
 router.put(
   "/:truck_id/truck-ratings/:truck_rating_id",
   checkValidTruckRating,
-  checkTruckRatingIdsMatch,
+  checkTruckIdsMatch,
   restrictedUserId,
   checkTruckRatingExists,
   async (req, res, next) => {
