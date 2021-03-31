@@ -3,8 +3,8 @@ const { decimalize } = require("../middleware");
 
 module.exports = { create, getAll, remove, edit, getById };
 
-async function getAll(numberOfTrucks = 20) {
-  const rawTrucks = await getTrucksWithRatings(numberOfTrucks);
+async function getAll(numberOfTrucks = 20, truckName = "") {
+  const rawTrucks = await getTrucksWithRatings(numberOfTrucks, truckName);
   const trucks = rawTrucks.map((truck) => {
     return {
       ...truck,
@@ -69,7 +69,7 @@ function edit(truck_id, truck) {
 }
 
 // Helper Methods
-function getTrucksWithRatings(numberOfTrucks) {
+function getTrucksWithRatings(numberOfTrucks, truckName) {
   return db("trucks as t")
     .leftJoin("truck_ratings as r", "t.truck_id", "r.truck_id")
     .column(
@@ -83,6 +83,7 @@ function getTrucksWithRatings(numberOfTrucks) {
       "t.close_time",
       "t.cuisine"
     )
+    .where(db.raw("LOWER(t.truck_name)"), "like", `%${truckName}%`)
     .count({ number_of_ratings: "r.truck_rating_id" })
     .avg({ truck_avg_rating: "r.truck_rating" })
     .groupBy("t.truck_id")
