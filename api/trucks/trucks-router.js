@@ -156,6 +156,25 @@ router.post(
   }
 );
 
+router.delete(
+  "/:truck_id/favorites/:favorite_id",
+  checkFavoriteExists,
+  restrictedUserId,
+  async (req, res, next) => {
+    const { favorite_id } = req.params;
+    
+    try {
+      const favoriteRemoved = await Favorite.remove(favorite_id);
+      res.json({
+        message: `successfully deleted favorite with id ${favorite_id}`,
+        favorite: favoriteRemoved,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.use((err, req, res, next) => {
   res.status(500).json({
     error: err.message,
