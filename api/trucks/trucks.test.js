@@ -818,7 +818,9 @@ describe("truck favorite", () => {
         .send({
           user_id: 1,
         });
-      expect(postRes.body.message).toMatch(/truck not added to favorites due to missing property/i);
+      expect(postRes.body.message).toMatch(
+        /truck not added to favorites due to missing property/i
+      );
       expect(postRes.status).toBe(422);
     });
     it("[7] responds with right status and message if POST to another user_id", async () => {
@@ -871,6 +873,72 @@ describe("truck favorite", () => {
         });
       expect(postRes.body.message).toMatch(/truck favorite already exists/i);
       expect(postRes.status).toBe(422);
+    });
+  });
+
+  describe("[DELETE] /api/trucks/:truck_id/favorites/:favorite_id", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).delete("/api/trucks/1/favorites/1");
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .delete("/api/trucks/1/favorites/1")
+        .set("Authorization", "qwerty");
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] successfully deletes a favorite record", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      await request(server)
+        .delete("/api/trucks/1/favorites/1")
+        .set("Authorization", loginRes.body.token);
+      const confirmDeletion = await db("favorites")
+        .where("favorite_id", 1)
+        .first();
+      expect(confirmDeletion).toBeUndefined();
+    });
+    it("[4] responds with correct status and message on successful deletion", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .delete("/api/trucks/1/favorites/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.message).toMatch(/successfully deleted/i);
+      expect(res.status).toBe(200);
+    });
+    it("[5] responds with deleted favorite record on successful deletion", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .delete("/api/trucks/1/favorites/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.favorite).toHaveProperty("favorite_id");
+      expect(res.body.favorite).toHaveProperty("truck_id");
+      expect(res.body.favorite).toHaveProperty("user_id");
+    });
+    it("[6] fails to delete when a user doesn't own the favorite", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "clara", password: "1234" });
+      const res = await request(server)
+        .delete("/api/trucks/1/favorites/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.message).toMatch(/invalid credentials/i);
+      expect(res.status).toBe(401);
+    });
+    it("[7] responds with correct status and message on attempt to delete a non-existent favorite", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .delete("/api/trucks/1/favorites/100")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.message).toMatch(/could not find/i);
+      expect(res.status).toBe(404);
     });
   });
 });
