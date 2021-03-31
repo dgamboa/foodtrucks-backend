@@ -8,6 +8,7 @@ const {
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Item = require("./items-model");
 const Photo = require("./photos-model");
+const ItemRating = require("./item-ratings-model");
 
 // Items
 router.post("/", checkValidItem, restrictedUserId, async (req, res, next) => {
