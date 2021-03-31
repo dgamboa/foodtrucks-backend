@@ -10,7 +10,7 @@ const { restrictedUserId } = require("../auth/auth-middleware");
 const Truck = require("./trucks-model");
 const TruckRating = require("./truck-ratings-model");
 
-// Truck Endpoints
+// Trucks
 router.get("/", async (req, res, next) => {
   const numberOfTrucks = req.query.limit;
   const truckName = req.query.name?.toLowerCase();
@@ -86,7 +86,7 @@ router.put(
   }
 );
 
-// Truck Ratings Endpoints
+// Truck Ratings
 router.post(
   "/:truck_id/truck-ratings",
   checkValidTruckRating,
