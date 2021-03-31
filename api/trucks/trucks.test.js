@@ -701,6 +701,7 @@ describe("truck ratings", () => {
           truck_id: 1,
           user_id: 1,
           truck_rating: 2,
+          test: "here"
         });
       expect(res.body.message).toMatch(/could not find/i);
       expect(res.status).toBe(404);

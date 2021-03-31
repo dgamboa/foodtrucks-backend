@@ -139,24 +139,26 @@ function checkTruckRatingIdsMatch(req, res, next) {
 }
 
 async function checkTruckRatingExists(req, res, next) {
-  const { truck_id, user_id, truck_rating_id } = req.body;
-  const truck_rating = await db("truck_ratings")
-    .where("truck_id", truck_id)
-    .andWhere("user_id", user_id)
-    .first();
+  const { truck_id, user_id } = req.body;
+  const { truck_rating_id } = req.params;
 
   if (req.method === "POST") {
+    const truck_rating = await db("truck_ratings")
+      .where("truck_id", truck_id)
+      .andWhere("user_id", user_id)
+      .first();
     truck_rating
       ? res.status(422).json({ message: "truck rating already exists" })
       : next();
   } else if (req.method === "PUT") {
+    const truck_rating = await db("truck_ratings")
+      .where("truck_rating_id", truck_rating_id)
+      .first();
     truck_rating
       ? next()
-      : res
-          .status(404)
-          .json({
-            message: `could not find truck_rating with id ${truck_rating_id}`,
-          });
+      : res.status(404).json({
+          message: `could not find truck_rating with id ${truck_rating_id}`,
+        });
   }
 }
 
