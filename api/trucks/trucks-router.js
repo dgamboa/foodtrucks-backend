@@ -9,6 +9,7 @@ const {
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Truck = require("./trucks-model");
 const TruckRating = require("./truck-ratings-model");
+const Favorite = require("./favorites-model");
 
 // Trucks
 router.get("/", async (req, res, next) => {
