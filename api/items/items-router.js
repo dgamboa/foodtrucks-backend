@@ -4,6 +4,9 @@ const {
   checkItemExists,
   checkValidPhoto,
   checkPhotoExists,
+  checkValidItemRating,
+  checkItemRatingIdsMatch,
+  checkItemRatingExists,
 } = require("../middleware");
 const { restrictedUserId } = require("../auth/auth-middleware");
 const Item = require("./items-model");

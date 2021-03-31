@@ -11,6 +11,9 @@ module.exports = {
   checkValidTruckRating,
   checkTruckRatingIdsMatch,
   checkTruckRatingExists,
+  checkValidItemRating,
+  checkItemRatingIdsMatch,
+  checkItemRatingExists,
   decimalize,
 };
 
@@ -157,7 +160,56 @@ async function checkTruckRatingExists(req, res, next) {
     truck_rating
       ? next()
       : res.status(404).json({
-          message: `could not find truck_rating with id ${truck_rating_id}`,
+          message: `could not find truck rating with id ${truck_rating_id}`,
+        });
+  }
+}
+
+function checkValidItemRating(req, res, next) {
+  const { user_id, item_id, item_rating } = req.body;
+
+  if (user_id && item_id && item_rating) {
+    next();
+  } else {
+    res.status(422).json({
+      message: "item rating creation failed due to invalid item rating object",
+    });
+  }
+}
+
+function checkItemRatingIdsMatch(req, res, next) {
+  const item_idBody = req.body.item_id;
+  const item_idParams = parseInt(req.params.item_id);
+
+  if (item_idBody === item_idParams) {
+    next();
+  } else {
+    res.status(422).json({
+      message: "item rating body must match params in path",
+    });
+  }
+}
+
+async function checkItemRatingExists(req, res, next) {
+  const { item_id, user_id } = req.body;
+  const { item_rating_id } = req.params;
+
+  if (req.method === "POST") {
+    const item_rating = await db("item_ratings")
+      .where("item_id", item_id)
+      .andWhere("user_id", user_id)
+      .first();
+    item_rating
+      ? res.status(422).json({ message: "item rating already exists" })
+      : next();
+  } else if (req.method === "PUT") {
+    const item_rating = await db("item_ratings")
+      .where("item_rating_id", item_rating_id)
+      .first();
+    item_rating
+      ? next()
+      : res.status(404).json({
+          message: `could not find item rating with id ${item_rating_id}`,
         });
   }
 }
