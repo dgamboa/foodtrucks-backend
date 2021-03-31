@@ -29,7 +29,6 @@ router.put(
         user: user[0],
         message: "user successfully updated!",
       });
-      // res.json(mockUser);
     } catch (err) {
       next(err);
     }
