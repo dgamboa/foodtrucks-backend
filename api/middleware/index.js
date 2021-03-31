@@ -240,7 +240,7 @@ async function checkFavoriteExists(req, res, next) {
     favorite
       ? res.status(422).json({ message: "truck favorite already exists" })
       : next();
-  } else if (req.method === "PUT") {
+  } else if (req.method === "DELETE") {
     const favorite = await db("favorites")
       .where("favorite_id", favorite_id)
       .first();
