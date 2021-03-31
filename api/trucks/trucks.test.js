@@ -902,9 +902,9 @@ describe("truck favorite", () => {
     it("[4] responds with correct status and message on successful deletion", async () => {
       const loginRes = await request(server)
         .post("/api/auth/login")
-        .send({ username: "jeff", password: "1234" });
+        .send({ username: "clara", password: "1234" });
       const res = await request(server)
-        .delete("/api/trucks/1/favorites/1")
+        .delete("/api/trucks/1/favorites/5")
         .set("Authorization", loginRes.body.token);
       expect(res.body.message).toMatch(/successfully deleted/i);
       expect(res.status).toBe(200);
@@ -937,7 +937,17 @@ describe("truck favorite", () => {
       const res = await request(server)
         .delete("/api/trucks/1/favorites/100")
         .set("Authorization", loginRes.body.token);
-      expect(res.body.message).toMatch(/could not find/i);
+      expect(res.body.message).toMatch(/could not find favorite/i);
+      expect(res.status).toBe(404);
+    });
+    it("[8] responds with correct status and message on attempt to delete favorite from a non-existent truck", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const res = await request(server)
+        .delete("/api/trucks/100/favorites/1")
+        .set("Authorization", loginRes.body.token);
+      expect(res.body.message).toMatch(/could not find truck/i);
       expect(res.status).toBe(404);
     });
   });

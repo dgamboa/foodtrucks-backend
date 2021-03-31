@@ -159,6 +159,7 @@ router.post(
 router.delete(
   "/:truck_id/favorites/:favorite_id",
   checkFavoriteExists,
+  checkTruckExists,
   restrictedUserId,
   async (req, res, next) => {
     const { favorite_id } = req.params;

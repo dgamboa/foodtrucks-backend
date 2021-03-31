@@ -69,6 +69,14 @@ async function restrictedUserId(req, res, next) {
   const truck_id = parseInt(req.params.truck_id) || req.body.truck_id;
   const item_id = parseInt(req.params.item_id);
   const photo_id = parseInt(req.params.photo_id);
+  const favorite_id = parseInt(req.params.favorite_id);
+
+  if (favorite_id) {
+    const favoriteRecord = await db("favorites")
+      .where("favorite_id", favorite_id)
+      .first();
+    user_id = favoriteRecord.user_id;
+  }
 
   if (photo_id) {
     const photoRecord = await db("item_photos")
