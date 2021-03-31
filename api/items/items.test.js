@@ -540,3 +540,262 @@ describe("photos", () => {
     });
   });
 });
+
+describe("item ratings", () => {
+  describe("[POST] /api/items/:item_id/item-ratings", () => {
+    it("[1] requests without a token are rejected with right status and message", async () => {
+      const res = await request(server).post("/api/items/5/item-ratings").send({
+        user_id: 1,
+        item_id: 5,
+        item_rating: 4,
+      });
+      expect(res.body.message).toMatch(/token required/i);
+    });
+    it("[2] requests with invalid token are rejected with right status and message", async () => {
+      const res = await request(server)
+        .post("/api/items/5/item-ratings")
+        .set("Authorization", "qwerty")
+        .send({
+          user_id: 1,
+          item_id: 5,
+          item_rating: 4,
+        });
+      expect(res.body.message).toMatch(/token invalid/i);
+    });
+    it("[3] creates a new item rating object", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/5/item-ratings")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 1,
+          item_id: 5,
+          item_rating: 4,
+        });
+      const itemRatingCreated = await db("item_ratings")
+        .where("item_rating_id", postRes.body.rating.item_rating_id)
+        .first();
+      expect(itemRatingCreated).toMatchObject({
+        user_id: 1,
+        item_id: 5,
+        item_rating: 4,
+      });
+    });
+    it("[4] responds with right status and message on successful item rating creation", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/5/item-ratings")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 1,
+          item_id: 5,
+          item_rating: 4,
+        });
+      expect(postRes.body.message).toMatch(/item rating .* created/i);
+      expect(postRes.status).toBe(201);
+    });
+    it("[5] responds with item rating created", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/5/item-ratings")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 1,
+          item_id: 5,
+          item_rating: 4,
+        });
+      expect(postRes.body.rating).toMatchObject({
+        user_id: 1,
+        item_id: 5,
+        item_rating: 4,
+      });
+    });
+    it("[6] responds with right status and message if missing item id", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/5/item-ratings")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 1,
+          item_rating: 4,
+        });
+      expect(postRes.body.message).toMatch(/item rating creation failed/i);
+      expect(postRes.status).toBe(422);
+    });
+    it("[7] responds with right status and message if POST to another user_id", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/5/item-ratings")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 2,
+          item_id: 5,
+          item_rating: 4,
+        });
+      expect(postRes.body.message).toMatch(/invalid credentials/i);
+      expect(postRes.status).toBe(401);
+    });
+    it("[8] item_id in body matches item_id in params", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      const postRes = await request(server)
+        .post("/api/items/1/item-ratings")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 1,
+          item_id: 5,
+          item_rating: 4,
+        });
+      expect(postRes.body.message).toMatch(
+        /item rating body must match params in path/i
+      );
+      expect(postRes.status).toBe(422);
+    });
+    it("[9] cannot POST if item rating already exists for that user_id and item_id", async () => {
+      const loginRes = await request(server)
+        .post("/api/auth/login")
+        .send({ username: "jeff", password: "1234" });
+      await request(server)
+        .post("/api/items/5/item-ratings")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 1,
+          item_id: 5,
+          item_rating: 4,
+        });
+      const postRes = await request(server)
+        .post("/api/items/5/item-ratings")
+        .set("Authorization", loginRes.body.token)
+        .send({
+          user_id: 1,
+          item_id: 5,
+          item_rating: 3,
+        });
+      expect(postRes.body.message).toMatch(/item rating already exists/i);
+      expect(postRes.status).toBe(422);
+    });
+  });
+
+  // describe("[PUT] /api/trucks/:truck_id/truck-ratings/:truck_rating_id", () => {
+  //   it("[1] requests without a token are rejected with right status and message", async () => {
+  //     const res = await request(server).put("/api/trucks/1/truck-ratings/1");
+  //     expect(res.body.message).toMatch(/token required/i);
+  //   });
+  //   it("[2] requests with invalid token are rejected with right status and message", async () => {
+  //     const res = await request(server)
+  //       .put("/api/trucks/1/truck-ratings/1")
+  //       .set("Authorization", "qwerty");
+  //     expect(res.body.message).toMatch(/token invalid/i);
+  //   });
+  //   it("[3] successfully edits a truck rating object", async () => {
+  //     const loginRes = await request(server)
+  //       .post("/api/auth/login")
+  //       .send({ username: "jeff", password: "1234" });
+  //     const putRes = await request(server)
+  //       .put("/api/trucks/1/truck-ratings/1")
+  //       .set("Authorization", loginRes.body.token)
+  //       .send({
+  //         truck_id: 1,
+  //         user_id: 1,
+  //         truck_rating: 2,
+  //       });
+  //     const truckRatingUpdated = await db("truck_ratings")
+  //       .where("truck_rating_id", putRes.body.rating.truck_rating_id)
+  //       .first();
+  //     expect(truckRatingUpdated).toMatchObject({
+  //       truck_id: 1,
+  //       user_id: 1,
+  //       truck_rating: 2,
+  //     });
+  //   });
+  //   it("[4] responds with correct status and message on successful edit", async () => {
+  //     const loginRes = await request(server)
+  //       .post("/api/auth/login")
+  //       .send({ username: "jeff", password: "1234" });
+  //     const putRes = await request(server)
+  //       .put("/api/trucks/1/truck-ratings/1")
+  //       .set("Authorization", loginRes.body.token)
+  //       .send({
+  //         truck_id: 1,
+  //         user_id: 1,
+  //         truck_rating: 2,
+  //       });
+  //     expect(putRes.body.message).toMatch(/truck rating .* updated/i);
+  //     expect(putRes.status).toBe(200);
+  //   });
+  //   it("[5] responds with updated truck rating on successful edit", async () => {
+  //     const loginRes = await request(server)
+  //       .post("/api/auth/login")
+  //       .send({ username: "jeff", password: "1234" });
+  //     const putRes = await request(server)
+  //       .put("/api/trucks/1/truck-ratings/1")
+  //       .set("Authorization", loginRes.body.token)
+  //       .send({
+  //         truck_id: 1,
+  //         user_id: 1,
+  //         truck_rating: 2,
+  //       });
+  //     expect(putRes.body.rating).toMatchObject({
+  //       truck_id: 1,
+  //       user_id: 1,
+  //       truck_rating: 2,
+  //     });
+  //   });
+  //   it("[6] fails to update when a user doesn't own the truck rating", async () => {
+  //     const loginRes = await request(server)
+  //       .post("/api/auth/login")
+  //       .send({ username: "clara", password: "1234" });
+  //     const putRes = await request(server)
+  //       .put("/api/trucks/1/truck-ratings/1")
+  //       .set("Authorization", loginRes.body.token)
+  //       .send({
+  //         truck_id: 1,
+  //         user_id: 1,
+  //         truck_rating: 2,
+  //       });
+  //     expect(putRes.body.message).toMatch(/invalid credentials/i);
+  //     expect(putRes.status).toBe(401);
+  //   });
+  //   it("[7] responds with correct status and message on attempt to edit a non-existent truck rating", async () => {
+  //     const loginRes = await request(server)
+  //       .post("/api/auth/login")
+  //       .send({ username: "jeff", password: "1234" });
+  //     const res = await request(server)
+  //       .put("/api/trucks/1/truck-ratings/100")
+  //       .set("Authorization", loginRes.body.token)
+  //       .send({
+  //         truck_id: 1,
+  //         user_id: 1,
+  //         truck_rating: 2,
+  //       });
+  //     expect(res.body.message).toMatch(/could not find/i);
+  //     expect(res.status).toBe(404);
+  //   });
+  //   it("[8] cannot edit a truck rating to a different user_id", async () => {
+  //     const loginRes = await request(server)
+  //       .post("/api/auth/login")
+  //       .send({ username: "jeff", password: "1234" });
+  //     const res = await request(server)
+  //       .put("/api/trucks/1/truck-ratings/1")
+  //       .set("Authorization", loginRes.body.token)
+  //       .send({
+  //         truck_id: 1,
+  //         user_id: 2,
+  //         truck_rating: 2,
+  //       });
+  //     expect(res.body.message).toMatch(/invalid credentials/i);
+  //     expect(res.status).toBe(401);
+  //   });
+  // });
+});
