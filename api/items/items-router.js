@@ -139,6 +139,31 @@ router.post(
   }
 );
 
+router.put(
+  "/:item_id/item-ratings/:item_rating_id",
+  checkValidItemRating,
+  checkItemRatingIdsMatch,
+  restrictedUserId,
+  checkItemRatingExists,
+  async (req, res, next) => {
+    const { item_rating_id } = req.params;
+    const itemRating = req.body;
+
+    try {
+      const itemRatingUpdated = await ItemRating.edit(
+        item_rating_id,
+        itemRating
+      );
+      return res.status(200).json({
+        rating: itemRatingUpdated[0],
+        message: "item rating successfully updated!",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.use((err, req, res, next) => {
   res.status(500).json({
     error: err.message,
