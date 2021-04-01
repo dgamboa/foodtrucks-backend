@@ -7,7 +7,7 @@ Anyone who loves finding unique, delicious food at non-traditional, fleeting spo
 The API is built using [Node.js](https://nodejs.org/en/), [Express](https://expressjs.com/) and [PostgreSQL](https://www.postgresql.org/).
 
 ### API Documentation
-Below is an endpoint example showcasing the GET /trucks functionality. The full documentation is available [here through Postman](https://documenter.getpostman.com/view/12999130/TzCL98f9).
+Below is an endpoint example showcasing the `GET /trucks` functionality. The full documentation is available [here through Postman](https://documenter.getpostman.com/view/12999130/TzCL98f9).
 
 #### Error Handling
 If a request fails, the response will include a status code and a JSON object with a message:
@@ -24,7 +24,7 @@ Other errors handled by the API include:
 - 500: Internal Server Error
 
 #### GET /trucks
-Returns a list of trucks after confirming the request came from an authenticated user.
+Returns a list of trucks after confirming the request came from an authenticated user.  
 *Example Request:*
 ```
 curl --location --request GET 'https://foodtrucks-app-backend.herokuapp.com/api/trucks' \
