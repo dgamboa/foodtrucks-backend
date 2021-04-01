@@ -71,12 +71,12 @@ You might be interested in using this backend to create your own. If so, feel fr
 1. Clone a version to your local repository
 1. From the root directory in your terminal:
 1. Create a an environment file (.env) and declare variables for the following:
-  1. PORT=INSERT YOUR PREFERRED PORT HERE
-  1. NODE_ENV=development
-  1. DEV_DATABASE_URL=INSERT DATABASE URL HERE
-  1. TESTING_DATABASE_URL=INSERT TESTING DATABASE URL HERE
-  1. JWT_SECRET=INSERT SECRET HERE
-  1. BCRYPT_ROUNDS=INSERT YOUR PREFERRED NUMBER OF ROUNDS HERE
+    1. PORT=INSERT YOUR PREFERRED PORT HERE
+    1. NODE_ENV=development
+    1. DEV_DATABASE_URL=INSERT DATABASE URL HERE
+    1. TESTING_DATABASE_URL=INSERT TESTING DATABASE URL HERE
+    1. JWT_SECRET=INSERT SECRET HERE
+    1. BCRYPT_ROUNDS=INSERT YOUR PREFERRED NUMBER OF ROUNDS HERE
 1. Run `npm install` from the root directory
 1. Check out the other scripts in `package.json` for running the server and the tests
 
