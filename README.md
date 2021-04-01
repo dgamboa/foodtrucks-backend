@@ -63,7 +63,7 @@ curl --location --request GET 'https://foodtrucks-app-backend.herokuapp.com/api/
 ```
 
 ### Design Document
-If you want to check out the design document for this project, [you can do so here](https://docs.google.com/document/d/1cMJlgD5KXnG-g7INizGB3Nw5yVL2T7lfs1kYAw9v3Vo/edit?usp=sharing).
+I like to start projects by getting organized with a simple but comprehensive design document. If you want to check out the design document for this project, [you can do so here](https://docs.google.com/document/d/1cMJlgD5KXnG-g7INizGB3Nw5yVL2T7lfs1kYAw9v3Vo/edit?usp=sharing).
 
 ### Developer Instructions
 You might be interested in using this backend to create your own. If so, feel free to follow these instructions and post what you build!
